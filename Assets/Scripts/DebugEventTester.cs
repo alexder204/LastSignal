@@ -21,20 +21,27 @@ public class DebugEventTester : MonoBehaviour
         var registry = ModuleRegistry.Instance;
         if (registry == null) yield break;
 
-        // Pick a random module (prefer one not already dead)
         StationModule target = registry.GetRandom(m => true);
         if (target == null) yield break;
 
-        // Focus camera
-        yield return cameraDirector.Focus(target.focusPoint != null ? target.focusPoint : target.transform);
+        // TURN ALARM ON
+        target.SetAlarm(true);
 
-        // Apply effect (damage + alarm)
+        // Focus camera
+        yield return cameraDirector.Focus(
+            target.focusPoint != null ? target.focusPoint : target.transform
+        );
+
+        // Apply effect
         target.Damage(damageAmount);
 
-        // Hold briefly
+        // Hold for readability
         yield return new WaitForSeconds(0.6f);
 
-        // Return
+        // Return camera
         yield return cameraDirector.ReturnToDefault();
+
+        // TURN ALARM OFF
+        target.SetAlarm(false);
     }
 }
