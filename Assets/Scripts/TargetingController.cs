@@ -28,6 +28,18 @@ public class TargetingController : MonoBehaviour
         if (hand == null) hand = FindFirstObjectByType<HandController>();
     }
 
+    private bool IsValidTarget(CardData card, StationModule module)
+    {
+        if (card == null || module == null) return false;
+
+        return card.targetRule switch
+        {
+            CardData.TargetRule.AnyModule => true,
+            CardData.TargetRule.SpecificType => module.type == card.requiredType,
+            _ => false
+        };
+    }
+
     public void StartTargeting(CardData card)
     {
         if (card == null) return;
@@ -60,12 +72,13 @@ public class TargetingController : MonoBehaviour
     public void OnModuleClicked(StationModule module)
     {
         if (!isTargeting || pendingCard == null) return;
-
-        // Prevent spam: once a module is clicked, lock immediately
         if (isResolving) return;
+
+        if (!IsValidTarget(pendingCard, module))
+            return;
+
         isResolving = true;
 
-        // Consume the card NOW so further clicks won't re-trigger
         CardData cardToResolve = pendingCard;
         pendingCard = null;
         isTargeting = false;
@@ -74,6 +87,7 @@ public class TargetingController : MonoBehaviour
 
         StartCoroutine(ResolveAndEnd(cardToResolve, module));
     }
+
 
     private IEnumerator ResolveAndEnd(CardData card, StationModule target)
     {
@@ -88,7 +102,18 @@ public class TargetingController : MonoBehaviour
     {
         foreach (var m in ModuleRegistry.Instance.All)
         {
-            m.SetAlarm(on); // TEMP highlight (safe + visible)
+            if (m == null) continue;
+
+            if (!on)
+            {
+                m.SetHighlighted(false);
+                m.SetAlarm(false);
+                continue;
+            }
+
+            bool valid = IsValidTarget(pendingCard, m);
+            m.SetHighlighted(valid);
+            m.SetAlarm(valid); // optional, remove if you don’t want alarms
         }
     }
 }

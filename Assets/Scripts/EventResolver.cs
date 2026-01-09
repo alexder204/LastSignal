@@ -47,6 +47,9 @@ public class EventResolver : MonoBehaviour
 
     private IEnumerator ResolveInternal(CardData card, StationModule target)
     {
+        // Highlight the affected module
+        if (target != null) target.SetHighlighted(true);
+
         if (target != null && card.flashAlarmDuringResolve)
             target.SetAlarm(true);
 
@@ -72,5 +75,8 @@ public class EventResolver : MonoBehaviour
 
         if (target != null && card.flashAlarmDuringResolve)
             target.SetAlarm(false);
+
+        // Stop highlighting
+        if (target != null) target.SetHighlighted(false);
     }
 }

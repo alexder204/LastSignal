@@ -10,9 +10,18 @@ public class CardData : ScriptableObject
     [TextArea] public string description;
     public CardKind kind;
 
+    public enum TargetRule
+    {
+        AnyModule,      // wildcard
+        SpecificType    // must match requiredType
+    }
+
+    [Header("Targeting Rules")]
+    public TargetRule targetRule = TargetRule.AnyModule;
+    public ModuleType requiredType;   // used when SpecificType
+
     [Header("Targeting")]
     public bool requiresTarget;
-    public ModuleType requiredType; // optional: set to a type for fixed-target cards
     public bool useRandomTargetIfNone; // for event cards
 
     [Header("Effect (simple for jam)")]

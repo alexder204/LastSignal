@@ -1374,6 +1374,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15d793fa876004345bc41fd0440cc394, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StationModule
+  normalMaterial: {fileID: 2100000, guid: 46280bb1d59bb0b459b517b256f9614a, type: 2}
+  highlightMaterial: {fileID: 2100000, guid: 4ae34b33b19349142b9ffcb6c72185a1, type: 2}
   type: 3
   focusPoint: {fileID: 528292790}
   vfxPoint: {fileID: 957844405}
@@ -1381,7 +1383,8 @@ MonoBehaviour:
   health: 0
   disabled: 0
   alarmLight: {fileID: 1553474281}
-  highlightRenderers: []
+  highlightRenderers:
+  - {fileID: 488274410}
 --- !u!1 &528292789
 GameObject:
   m_ObjectHideFlags: 0
@@ -1781,6 +1784,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15d793fa876004345bc41fd0440cc394, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StationModule
+  normalMaterial: {fileID: 2100000, guid: a851611a5b773f04fb0e0a6349b17f0f, type: 2}
+  highlightMaterial: {fileID: 2100000, guid: 4ae34b33b19349142b9ffcb6c72185a1, type: 2}
   type: 0
   focusPoint: {fileID: 1921322964}
   vfxPoint: {fileID: 957844405}
@@ -1788,7 +1793,8 @@ MonoBehaviour:
   health: 0
   disabled: 0
   alarmLight: {fileID: 1553474281}
-  highlightRenderers: []
+  highlightRenderers:
+  - {fileID: 1059482064}
 --- !u!1 &1060518215
 GameObject:
   m_ObjectHideFlags: 0
@@ -1946,6 +1952,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15d793fa876004345bc41fd0440cc394, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StationModule
+  normalMaterial: {fileID: 2100000, guid: 9e7c5d6982cf968468f405090c47ad0b, type: 2}
+  highlightMaterial: {fileID: 2100000, guid: 4ae34b33b19349142b9ffcb6c72185a1, type: 2}
   type: 5
   focusPoint: {fileID: 1060518216}
   vfxPoint: {fileID: 957844405}
@@ -1953,7 +1961,8 @@ MonoBehaviour:
   health: 0
   disabled: 0
   alarmLight: {fileID: 1553474281}
-  highlightRenderers: []
+  highlightRenderers:
+  - {fileID: 1217104013}
 --- !u!1 &1301948799
 GameObject:
   m_ObjectHideFlags: 0
@@ -2893,6 +2902,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15d793fa876004345bc41fd0440cc394, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StationModule
+  normalMaterial: {fileID: 2100000, guid: 6dfc780ac8a774d438d9d02d06fc0369, type: 2}
+  highlightMaterial: {fileID: 2100000, guid: 4ae34b33b19349142b9ffcb6c72185a1, type: 2}
   type: 1
   focusPoint: {fileID: 1458482026}
   vfxPoint: {fileID: 957844405}
@@ -2900,7 +2911,8 @@ MonoBehaviour:
   health: 0
   disabled: 0
   alarmLight: {fileID: 1553474281}
-  highlightRenderers: []
+  highlightRenderers:
+  - {fileID: 1679353346}
 --- !u!1 &1883498323
 GameObject:
   m_ObjectHideFlags: 0
@@ -3027,6 +3039,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15d793fa876004345bc41fd0440cc394, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StationModule
+  normalMaterial: {fileID: 2100000, guid: 1433524be3785af43bcc08bec1f20a04, type: 2}
+  highlightMaterial: {fileID: 2100000, guid: 4ae34b33b19349142b9ffcb6c72185a1, type: 2}
   type: 2
   focusPoint: {fileID: 1486642493}
   vfxPoint: {fileID: 957844405}
@@ -3034,7 +3048,8 @@ MonoBehaviour:
   health: 0
   disabled: 0
   alarmLight: {fileID: 1553474281}
-  highlightRenderers: []
+  highlightRenderers:
+  - {fileID: 1883498325}
 --- !u!1 &1921322963
 GameObject:
   m_ObjectHideFlags: 0
@@ -3329,6 +3344,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15d793fa876004345bc41fd0440cc394, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StationModule
+  normalMaterial: {fileID: 2100000, guid: d6f8a9455c9de3e418e401bfaa04a3d8, type: 2}
+  highlightMaterial: {fileID: 2100000, guid: 4ae34b33b19349142b9ffcb6c72185a1, type: 2}
   type: 4
   focusPoint: {fileID: 449298711}
   vfxPoint: {fileID: 957844405}
@@ -3336,7 +3353,8 @@ MonoBehaviour:
   health: 0
   disabled: 0
   alarmLight: {fileID: 1553474281}
-  highlightRenderers: []
+  highlightRenderers:
+  - {fileID: 2048146989}
 --- !u!1 &2102278483
 GameObject:
   m_ObjectHideFlags: 0

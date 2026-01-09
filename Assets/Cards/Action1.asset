@@ -15,8 +15,9 @@ MonoBehaviour:
   cardName: Action1
   description: Action 1 gives to oxygen
   kind: 1
-  requiresTarget: 1
+  targetRule: 1
   requiredType: 1
+  requiresTarget: 1
   useRandomTargetIfNone: 0
   oxygenDelta: 2
   powerDelta: 0

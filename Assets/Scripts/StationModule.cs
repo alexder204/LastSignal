@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class StationModule : MonoBehaviour
 {
+    [Header("Highlight (optional)")]
+    public Material normalMaterial;
+    public Material highlightMaterial;
+
     [Header("Identity")]
     public ModuleType type;
 
@@ -74,6 +78,16 @@ public class StationModule : MonoBehaviour
     {
         if (alarmLight != null) alarmLight.enabled = on;
     }
+
+    public void SetHighlighted(bool on)
+    {
+        if (highlightRenderers == null || highlightRenderers.Length == 0) return;
+        if (normalMaterial == null || highlightMaterial == null) return;
+
+        foreach (var r in highlightRenderers)
+            if (r != null) r.material = on ? highlightMaterial : normalMaterial;
+    }
+
 
     // For quick targeting/selection debugging
     void OnDrawGizmosSelected()
