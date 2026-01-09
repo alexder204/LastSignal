@@ -11,6 +11,8 @@ public class TargetingController : MonoBehaviour
     private CardData pendingCard;
     private bool isTargeting;
 
+    public bool IsTargeting => isTargeting;
+
     void Awake()
     {
         if (Instance != null)

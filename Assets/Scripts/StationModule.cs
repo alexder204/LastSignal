@@ -32,8 +32,17 @@ public class StationModule : MonoBehaviour
 
     void OnMouseDown()
     {
-        TargetingController.Instance?.OnModuleClicked(this);
+        // If targeting is active, this click should play the card
+        if (TargetingController.Instance != null && TargetingController.Instance.IsTargeting)
+        {
+            TargetingController.Instance.OnModuleClicked(this);
+            return;
+        }
+
+        // Otherwise show floating tag
+        ModuleTagController.Instance?.ShowFor(this);
     }
+
 
     public void Damage(int amount)
     {
