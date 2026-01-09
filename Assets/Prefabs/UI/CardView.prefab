@@ -409,6 +409,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba956c45fe10a1f48b942a2eeaf6136f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardView
-  titleText: {fileID: 0}
-  descText: {fileID: 0}
-  button: {fileID: 0}
+  titleText: {fileID: 2987017499412549823}
+  descText: {fileID: 853495957498513185}
+  button: {fileID: 2323377721693135697}

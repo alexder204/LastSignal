@@ -26,13 +26,31 @@ public class TargetingController : MonoBehaviour
 
     public void StartTargeting(CardData card)
     {
-        if (isTargeting) return;
+        if (card == null) return;
 
+        // If already targeting the same card -> deselect (cancel)
+        if (isTargeting && pendingCard == card)
+        {
+            CancelTargeting();
+            return;
+        }
+
+        // If targeting a different card -> switch to it
         pendingCard = card;
         isTargeting = true;
 
         HighlightModules(true);
     }
+
+    public void CancelTargeting()
+    {
+        if (!isTargeting) return;
+
+        HighlightModules(false);
+        pendingCard = null;
+        isTargeting = false;
+    }
+
 
     public void OnModuleClicked(StationModule module)
     {
