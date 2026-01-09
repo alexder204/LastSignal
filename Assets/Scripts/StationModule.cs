@@ -30,6 +30,11 @@ public class StationModule : MonoBehaviour
         SetAlarm(false);
     }
 
+    void OnMouseDown()
+    {
+        TargetingController.Instance?.OnModuleClicked(this);
+    }
+
     public void Damage(int amount)
     {
         if (amount <= 0) return;
