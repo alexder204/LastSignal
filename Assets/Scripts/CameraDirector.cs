@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CameraDirector : MonoBehaviour
 {
+    public bool IsPanning { get; private set; }
+
     [Header("Rig root that moves (the parent of your pivot/camera)")]
     public Transform rigRoot;
 
@@ -52,8 +54,10 @@ public class CameraDirector : MonoBehaviour
 
     private IEnumerator PanTo(Vector3 worldPos)
     {
+        IsPanning = true;
+
         Vector3 start = rigRoot.position;
-        Vector3 end = new Vector3(worldPos.x, start.y, worldPos.z); // keep height constant
+        Vector3 end = new Vector3(worldPos.x, start.y, worldPos.z);
 
         float t = 0f;
         while (t < 1f)
@@ -64,5 +68,7 @@ public class CameraDirector : MonoBehaviour
             yield return null;
         }
         rigRoot.position = end;
+
+        IsPanning = false;
     }
 }
