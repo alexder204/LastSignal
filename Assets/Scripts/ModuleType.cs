@@ -5,6 +5,6 @@ public enum ModuleType
     Reactor,
     Comms,
     HullControl,
-    MedBay,
+    DefenseSystem,
     Workshop
 }
