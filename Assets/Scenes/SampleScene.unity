@@ -2041,6 +2041,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  focusOffset: {x: 0, y: 0, z: -15}
 --- !u!4 &1339737591
 Transform:
   m_ObjectHideFlags: 0

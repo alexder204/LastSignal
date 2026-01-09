@@ -13,6 +13,8 @@ public class CameraDirector : MonoBehaviour
 
     private Vector3 defaultPos;
     private bool hasDefault;
+    public Vector3 focusOffset = Vector3.zero;
+
 
     void Awake()
     {
@@ -38,8 +40,9 @@ public class CameraDirector : MonoBehaviour
         if (rigRoot == null || target == null) yield break;
         if (!hasDefault) SetDefaultFromCurrent();
 
-        yield return PanTo(target.position);
+        yield return PanTo(target.position + focusOffset);
     }
+
 
     public IEnumerator ReturnToDefault()
     {

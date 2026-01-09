@@ -11,6 +11,8 @@ public class TargetingController : MonoBehaviour
     private CardData pendingCard;
     private bool isTargeting;
 
+    private bool isResolving;
+    public bool IsResolving => isResolving;
     public bool IsTargeting => isTargeting;
 
     void Awake()
@@ -46,6 +48,7 @@ public class TargetingController : MonoBehaviour
 
     public void CancelTargeting()
     {
+        if (isResolving) return;
         if (!isTargeting) return;
 
         HighlightModules(false);
@@ -58,19 +61,27 @@ public class TargetingController : MonoBehaviour
     {
         if (!isTargeting || pendingCard == null) return;
 
-        StartCoroutine(ResolveAndEnd(module));
-    }
+        // Prevent spam: once a module is clicked, lock immediately
+        if (isResolving) return;
+        isResolving = true;
 
-    private IEnumerator ResolveAndEnd(StationModule target)
-    {
-        HighlightModules(false);
-
-        yield return resolver.Resolve(pendingCard, target);
-
-        hand.RemoveCard(pendingCard);
-
+        // Consume the card NOW so further clicks won't re-trigger
+        CardData cardToResolve = pendingCard;
         pendingCard = null;
         isTargeting = false;
+
+        HighlightModules(false);
+
+        StartCoroutine(ResolveAndEnd(cardToResolve, module));
+    }
+
+    private IEnumerator ResolveAndEnd(CardData card, StationModule target)
+    {
+        yield return resolver.Resolve(card, target);
+
+        hand.RemoveCard(card);
+
+        isResolving = false;
     }
 
     private void HighlightModules(bool on)
