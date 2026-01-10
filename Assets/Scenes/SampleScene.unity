@@ -8969,6 +8969,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1639433565}
+  - component: {fileID: 1639433566}
   m_Layer: 0
   m_Name: CameraRig
   m_TagString: Untagged
@@ -8992,6 +8993,23 @@ Transform:
   - {fileID: 1301948800}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1639433566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639433564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0c34dba6fb66e14e8a3a24d032dec4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraMove
+  moveSpeed: 5
+  zoomSpeed: 10
+  minZoom: 0.5
+  maxZoom: 5
+  initialZoom: 1
 --- !u!1 &1676584913
 GameObject:
   m_ObjectHideFlags: 0

@@ -60,10 +60,10 @@ public class EventResolver : MonoBehaviour
         if (target != null && card.flashAlarmDuringResolve)
             target.SetAlarm(true);
 
-        if (target != null && cameraDirector != null)
+        if (target != null && cameraDirector != null && card.kind == CardKind.Event)
         {
             var fp = target.focusPoint != null ? target.focusPoint : target.transform;
-            yield return cameraDirector.Focus(fp);
+            yield return cameraDirector.Focus(fp, true);
         }
 
         if (resources != null)
@@ -77,8 +77,8 @@ public class EventResolver : MonoBehaviour
 
         yield return new WaitForSeconds(Mathf.Max(0f, card.cameraHoldSeconds));
 
-        if (cameraDirector != null)
-            yield return cameraDirector.ReturnToDefault();
+        if (cameraDirector != null && card.kind == CardKind.Event)
+            yield return cameraDirector.ReturnToLastPosition();
 
         if (target != null && card.flashAlarmDuringResolve)
             target.SetAlarm(false);
