@@ -6,6 +6,7 @@ public class EventResolver : MonoBehaviour
 {
     public CameraDirector cameraDirector;
     public ResourceManager resources;
+    public EventPopupUI eventPopup;
 
     // Use this for EVENT cards and for actions that don't need a target.
     public IEnumerator Resolve(CardData card)
@@ -50,6 +51,9 @@ public class EventResolver : MonoBehaviour
 
     private IEnumerator ResolveInternal(CardData card, StationModule target)
     {
+        if (card.kind == CardKind.Event && eventPopup != null)
+            eventPopup.Show(card);
+
         // Highlight the affected module
         if (target != null) target.SetHighlighted(true);
 
