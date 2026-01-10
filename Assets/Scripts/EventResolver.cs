@@ -67,7 +67,7 @@ public class EventResolver : MonoBehaviour
         }
 
         if (resources != null)
-            resources.Apply(card.oxygenDelta, card.powerDelta, card.hullDelta, card.signalDelta);
+            resources.Apply(card.oxygenDelta, card.powerDelta, card.sustainabilityDelta, card.signalDelta);
 
         if (target != null)
         {

@@ -31,7 +31,7 @@ public class CardData : ScriptableObject
     [Header("Effect (simple for jam)")]
     public int oxygenDelta;
     public int powerDelta;
-    public int hullDelta;
+    public int sustainabilityDelta;
     public int signalDelta;
 
     [Header("Module Effect")]

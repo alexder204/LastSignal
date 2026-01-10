@@ -34,7 +34,7 @@ public class DeckClicker : MonoBehaviour
 
     [Header("Module References")]
     public StationModule lifeSupport; // assign in Inspector (recommended)
-    public StationModule reactor;     // assign in Inspector (recommended)
+    public StationModule power;     // assign in Inspector (recommended)
 
     [Header("Lose Rule: Life Support Collapse")]
     public int lifeSupportTurnsBeforeDeath = 2;
@@ -61,11 +61,11 @@ public class DeckClicker : MonoBehaviour
         if (deckButton == null) deckButton = GetComponent<Button>();
         if (resources == null) resources = FindFirstObjectByType<ResourceManager>();
 
-        // Optional auto-find fallback:
+        // auto-find fallback:
         if (ModuleRegistry.Instance != null)
         {
             if (lifeSupport == null) lifeSupport = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
-            if (reactor == null)     reactor     = ModuleRegistry.Instance.Get(ModuleType.Reactor); // NEW
+            if (power == null)     power     = ModuleRegistry.Instance.Get(ModuleType.Power); // NEW
         }
     }
 
@@ -74,7 +74,7 @@ public class DeckClicker : MonoBehaviour
         baseEventChance = eventChance;
         StartDay(1);
 
-        // NEW: initialize rule states at start
+        //initialize rule states at start
         UpdateLifeSupportCrisisState();
         UpdateReactorCollapseState();
         RefreshLifeSupportCrisisUI();
@@ -196,21 +196,21 @@ public class DeckClicker : MonoBehaviour
     // --- end Life Support rule ---
 
     // --- Reactor rule ---
-    private bool IsReactorDown()
+    private bool IsPowerDown()
     {
-        if (reactor == null && ModuleRegistry.Instance != null)
-            reactor = ModuleRegistry.Instance.Get(ModuleType.Reactor); // NEW fallback
+        if (power == null && ModuleRegistry.Instance != null)
+            power = ModuleRegistry.Instance.Get(ModuleType.Power); // NEW fallback
 
-        return reactor != null && reactor.Health <= 0;
+        return power != null && power.Health <= 0;
     }
 
     private void UpdateReactorCollapseState()
     {
         if (resources == null) return;
 
-        if (IsReactorDown())
+        if (IsPowerDown())
         {
-            resources.power = 0;           // lock power to 0 while reactor is dead
+            resources.power = 0;           // lock power to 0 while power is dead
             reactorCollapseActive = true;
         }
         else
