@@ -2,9 +2,9 @@
 public enum ModuleType
 {
     LifeSupport,
-    Power,
+    Reactor,
     Comms,
-    BuildingIntegrity,
+    HullControl,
     DefenseSystem,
     Workshop
 }

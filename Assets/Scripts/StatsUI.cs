@@ -8,7 +8,7 @@ public class StatsUI : MonoBehaviour
     [Header("Text References")]
     public TMP_Text oxygenText;
     public TMP_Text powerText;
-    public TMP_Text stabilityText;
+    public TMP_Text hullText;
     public TMP_Text signalText;
 
     void Start()
@@ -32,7 +32,7 @@ public class StatsUI : MonoBehaviour
 
         if (oxygenText) oxygenText.text = $"O2: {resources.oxygen}";
         if (powerText)  powerText.text  = $"PWR: {resources.power}";
-        if (stabilityText)   stabilityText.text   = $"Stability: {resources.stability}";
+        if (hullText)   hullText.text   = $"HULL: {resources.hull}";
         if (signalText) signalText.text = $"SIG: {resources.signal}";
     }
 }
