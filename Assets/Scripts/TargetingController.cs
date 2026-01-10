@@ -92,6 +92,7 @@ public class TargetingController : MonoBehaviour
     private IEnumerator ResolveAndEnd(CardData card, StationModule target)
     {
         yield return resolver.Resolve(card, target);
+        FindFirstObjectByType<DeckClicker>()?.SendMessage("CheckWinAndEnd");
 
         hand.RemoveCard(card);
 

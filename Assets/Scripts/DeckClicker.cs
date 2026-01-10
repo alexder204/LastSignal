@@ -303,6 +303,8 @@ public class DeckClicker : MonoBehaviour
     private IEnumerator ResolveEventAndUnlock(CardData card)
     {
         yield return resolver.Resolve(card);
+        CheckWinAndEnd();
+        if (gameEnded) yield break;
 
         // NEW: update rules after event resolves
         UpdateLifeSupportCrisisState();
@@ -341,4 +343,21 @@ public class DeckClicker : MonoBehaviour
         deckLocked = false;
         if (deckButton != null) deckButton.interactable = true;
     }
+
+    private void CheckWinAndEnd()
+    {
+        if (resources == null) return;
+
+        if (resources.signal >= signalGoal)
+        {
+            Debug.Log("WIN: Signal goal reached. Closing game.");
+
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
+        }
+    }
+
 }
