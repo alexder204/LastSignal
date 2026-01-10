@@ -29,19 +29,22 @@ public class EventResolver : MonoBehaviour
 
     private StationModule PickTargetFromCard(CardData card)
     {
-        if (ModuleRegistry.Instance == null) return null;
+        if (ModuleRegistry.Instance == null || card == null) return null;
 
         // Only EVENTS auto-pick a target.
-        if (card.kind == CardKind.Event)
-        {
-            if (card.requiresTarget)
-                return ModuleRegistry.Instance.Get(card.requiredType);
+        if (card.kind != CardKind.Event) return null;
 
-            if (card.useRandomTargetIfNone)
-                return ModuleRegistry.Instance.GetRandom(m => true);
+        // Decide based on targetRule
+        if (card.targetRule == CardData.TargetRule.SpecificType)
+        {
+            // pick a random module of that type (works even if you have multiple)
+            return ModuleRegistry.Instance.GetRandom(m => m != null && m.type == card.requiredType);
         }
 
-        // ACTIONS must be targeted by the player (forcedTarget).
+        // AnyModule
+        if (card.useRandomTargetIfNone)
+            return ModuleRegistry.Instance.GetRandom(m => m != null);
+
         return null;
     }
 

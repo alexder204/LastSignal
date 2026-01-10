@@ -14,9 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Action2
   description: Action 2 adds Power
+  cardArt: {fileID: 21300000, guid: 1a83e21a92fcb334b91da0a8207a2bf3, type: 3}
   kind: 1
-  requiresTarget: 1
+  targetRule: 0
   requiredType: 1
+  requiresTarget: 1
   useRandomTargetIfNone: 0
   oxygenDelta: 0
   powerDelta: 2

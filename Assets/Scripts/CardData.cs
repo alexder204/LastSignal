@@ -8,6 +8,10 @@ public class CardData : ScriptableObject
 {
     public string cardName;
     [TextArea] public string description;
+
+    [Header("Art")]
+    public Sprite cardArt;
+
     public CardKind kind;
 
     public enum TargetRule

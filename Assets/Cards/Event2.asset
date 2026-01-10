@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Event2
   description: Event 2 hits Reactor
+  cardArt: {fileID: 21300000, guid: 4a1d9d9bb6b939f489c05c6508554157, type: 3}
   kind: 0
+  targetRule: 1
+  requiredType: 0
   requiresTarget: 0
-  requiredType: 1
-  useRandomTargetIfNone: 1
+  useRandomTargetIfNone: 0
   oxygenDelta: 0
   powerDelta: -2
   hullDelta: 0

@@ -8,6 +8,7 @@ public class DeckClicker : MonoBehaviour
     [Header("UI")]
     public TMP_Text dayText;
     public TMP_Text drawsText;
+    public TMP_Text statusText;
     public Button deckButton;
 
     [Header("Progression")]
@@ -31,8 +32,20 @@ public class DeckClicker : MonoBehaviour
     public HandController hand;
     public ResourceManager resources;
 
+    [Header("Module References")]
+    public StationModule lifeSupport;    // assign in Inspector (recommended)
+
+    [Header("Lose Rule: Life Support Collapse")]
+    public int lifeSupportTurnsBeforeDeath = 2;
+
     private int drawsUsed;
     private bool deckLocked;
+
+    // Life support rule state
+    private bool lsCrisisActive;
+    private int lsTurnsLeft;
+
+    private bool gameEnded;
 
     void Awake()
     {
@@ -42,11 +55,16 @@ public class DeckClicker : MonoBehaviour
         if (hand == null) hand = FindFirstObjectByType<HandController>();
         if (deckButton == null) deckButton = GetComponent<Button>();
         if (resources == null) resources = FindFirstObjectByType<ResourceManager>();
+        // lifeSupport: ideally assign in Inspector; optional auto-find fallback:
+        if (lifeSupport == null && ModuleRegistry.Instance != null)
+            lifeSupport = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
     }
+
     void Start()
     {
         baseEventChance = eventChance;
         StartDay(1);
+        RefreshLifeSupportCrisisUI();
     }
 
     private void StartDay(int newDay)
@@ -61,8 +79,6 @@ public class DeckClicker : MonoBehaviour
             TargetingController.Instance.CancelTargeting();
 
         RefreshUI();
-
-        Debug.Log($"DAY {day} START  Draws:{maxDrawsThisDay}  EventChance:{eventChance:0.00}");
     }
 
     private void AdvanceDay()
@@ -76,6 +92,14 @@ public class DeckClicker : MonoBehaviour
         return resources.signal >= signalGoal;
     }
 
+    private void EndGameLose(string reason)
+    {
+        gameEnded = true;
+        Debug.Log($"GAME OVER: {reason}");
+        if (statusText != null) statusText.text = "GAME OVER";
+        LockDeck();
+    }
+
     private void RefreshUI()
     {
         if (dayText != null)
@@ -85,9 +109,94 @@ public class DeckClicker : MonoBehaviour
             drawsText.text = $"{drawsUsed}/{maxDrawsThisDay}";
     }
 
+    // --- Life Support rule (core) ---
+    private bool IsLifeSupportDown()
+    {
+        if (lifeSupport == null && ModuleRegistry.Instance != null)
+            lifeSupport = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
+
+        return lifeSupport != null && lifeSupport.Health <= 0;
+    }
+
+    private void RefreshLifeSupportCrisisUI()
+    {
+        if (statusText == null) return;
+
+        if (gameEnded)
+        {
+            statusText.text = "GAME OVER";
+            return;
+        }
+
+        if (lsCrisisActive)
+            statusText.text = $"LIFE SUPPORT OFFLINE — {lsTurnsLeft} turns left";
+        else
+            statusText.text = "";
+    }
+
+    private void UpdateLifeSupportCrisisState()
+    {
+        if (resources == null) return;
+
+        bool down = IsLifeSupportDown();
+
+        if (down)
+        {
+            // immediate effect: oxygen forced to 0 while LS is down
+            resources.oxygen = 0;
+
+            // on-enter: start countdown once
+            if (!lsCrisisActive)
+            {
+                lsCrisisActive = true;
+                lsTurnsLeft = Mathf.Max(1, lifeSupportTurnsBeforeDeath);
+                RefreshLifeSupportCrisisUI();
+            }
+        }
+        else
+        {
+            // on-exit: cancel countdown if repaired
+            if (lsCrisisActive)
+            {
+                lsCrisisActive = false;
+                lsTurnsLeft = 0;
+                RefreshLifeSupportCrisisUI();
+            }
+        }
+    }
+
+    // Call ONLY when a card was successfully drawn (a "turn" happened)
+    private void TickLifeSupportCrisisOnTurn()
+    {
+        if (!lsCrisisActive) return;
+
+        // If they repaired LS before this draw, cancel
+        if (!IsLifeSupportDown())
+        {
+            lsCrisisActive = false;
+            lsTurnsLeft = 0;
+            RefreshLifeSupportCrisisUI();
+            return;
+        }
+
+        lsTurnsLeft = Mathf.Max(0, lsTurnsLeft - 1);
+        RefreshLifeSupportCrisisUI();
+
+        // Two turns means: after the 2nd successful draw, turns hits 0 and you lose immediately.
+        if (lsTurnsLeft <= 0)
+        {
+            EndGameLose("Life Support offline for too long.");
+        }
+    }
+    // --- end Life Support rule ---
 
     public void OnDeckClicked()
     {
+        if (gameEnded) return;
+
+        // Keep rule state up-to-date before doing anything
+        UpdateLifeSupportCrisisState();
+
         if (CheckWin())
         {
             Debug.Log("WIN: Signal goal reached.");
@@ -113,8 +222,13 @@ public class DeckClicker : MonoBehaviour
             return;
         }
 
+        // Successful draw = a turn happened
         drawsUsed++;
         RefreshUI();
+
+        // Tick life support countdown AFTER the draw (so they still get the "two more turns")
+        TickLifeSupportCrisisOnTurn();
+        if (gameEnded) return;
 
         if (kind == CardKind.Event)
         {
@@ -122,8 +236,8 @@ public class DeckClicker : MonoBehaviour
         }
         else
         {
-            hand.AddCard(card); // no camera pan
-            StartCoroutine(UnlockNextFrame()); // small cooldown so you can't turbo-click
+            hand.AddCard(card);
+            StartCoroutine(UnlockNextFrame());
         }
     }
 
@@ -131,20 +245,28 @@ public class DeckClicker : MonoBehaviour
     {
         yield return resolver.Resolve(card);
 
-        // Wait until camera finishes returning/panning, just in case
+        // Rule might change after events resolve (repairs/damage)
+        UpdateLifeSupportCrisisState();
+
         while ((cameraDirector != null && cameraDirector.IsPanning) ||
                (TargetingController.Instance != null && TargetingController.Instance.IsResolving))
         {
             yield return null;
         }
 
-        UnlockDeck();
+        if (!gameEnded)
+            UnlockDeck();
     }
 
     private IEnumerator UnlockNextFrame()
     {
         yield return null;
-        UnlockDeck();
+
+        // Rule might change after drawing action (no resolve yet, but keep consistent)
+        UpdateLifeSupportCrisisState();
+
+        if (!gameEnded)
+            UnlockDeck();
     }
 
     private void LockDeck()

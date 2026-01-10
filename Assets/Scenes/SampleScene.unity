@@ -2461,6 +2461,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DeckClicker
   dayText: {fileID: 1808405030}
   drawsText: {fileID: 1607788712}
+  statusText: {fileID: 216644487}
   deckButton: {fileID: 1503014617}
   day: 1
   signalGoal: 10
@@ -2475,6 +2476,8 @@ MonoBehaviour:
   resolver: {fileID: 396754127}
   hand: {fileID: 155244859}
   resources: {fileID: 1496715949}
+  lifeSupport: {fileID: 1059482067}
+  lifeSupportTurnsBeforeDeath: 1
 --- !u!1 &1553474279
 GameObject:
   m_ObjectHideFlags: 0

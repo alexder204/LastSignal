@@ -7,6 +7,7 @@ public class CardView : MonoBehaviour
     public TMP_Text titleText;
     public TMP_Text descText;
     public Button button;
+    public Image artImage;
 
     private CardData card;
     private System.Action<CardData> onClicked;
@@ -24,6 +25,11 @@ public class CardView : MonoBehaviour
         {
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(() => onClicked?.Invoke(card));
+        }
+        if (artImage != null)
+        {
+            artImage.sprite = data != null ? data.cardArt : null;
+            artImage.enabled = artImage.sprite != null;
         }
     }
 }
