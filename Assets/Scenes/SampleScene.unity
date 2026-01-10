@@ -11681,6 +11681,14 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   focusOffset: {x: 0, y: 0, z: -15}
+  useTopDownOnFocus: 1
+  topDownHeight: 20
+  topDownHoldSeconds: 0.25
+  topDownZoomHeight: 12
+  topDownPitch: 90
+  topDownCenter: {fileID: 301648774}
+  topDownZoomOffset: {x: 0, y: 0, z: 0}
+  lookPivot: {fileID: 330585546}
 --- !u!4 &1339737591
 Transform:
   m_ObjectHideFlags: 0
@@ -13985,6 +13993,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1639433565}
+  - component: {fileID: 1639433566}
   m_Layer: 0
   m_Name: CameraRig
   m_TagString: Untagged
@@ -14008,6 +14017,21 @@ Transform:
   - {fileID: 1301948800}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1639433566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639433564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0c34dba6fb66e14e8a3a24d032dec4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraMove
+  moveSpeed: 5
+  rotateSpeed: 90
+  minY: 2
 --- !u!1 &1668350480
 GameObject:
   m_ObjectHideFlags: 0
