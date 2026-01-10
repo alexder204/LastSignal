@@ -33,10 +33,15 @@ public class DeckClicker : MonoBehaviour
     public ResourceManager resources;
 
     [Header("Module References")]
-    public StationModule lifeSupport;    // assign in Inspector (recommended)
+    public StationModule lifeSupport; // assign in Inspector (recommended)
+    public StationModule reactor;     // assign in Inspector (recommended)
 
     [Header("Lose Rule: Life Support Collapse")]
     public int lifeSupportTurnsBeforeDeath = 2;
+
+    [Header("Reactor Collapse Rule")]
+    public int blackoutDamagePerTurn = 1;
+    private bool reactorCollapseActive;
 
     private int drawsUsed;
     private bool deckLocked;
@@ -55,15 +60,23 @@ public class DeckClicker : MonoBehaviour
         if (hand == null) hand = FindFirstObjectByType<HandController>();
         if (deckButton == null) deckButton = GetComponent<Button>();
         if (resources == null) resources = FindFirstObjectByType<ResourceManager>();
-        // lifeSupport: ideally assign in Inspector; optional auto-find fallback:
-        if (lifeSupport == null && ModuleRegistry.Instance != null)
-            lifeSupport = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
+
+        // Optional auto-find fallback:
+        if (ModuleRegistry.Instance != null)
+        {
+            if (lifeSupport == null) lifeSupport = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
+            if (reactor == null)     reactor     = ModuleRegistry.Instance.Get(ModuleType.Reactor); // NEW
+        }
     }
 
     void Start()
     {
         baseEventChance = eventChance;
         StartDay(1);
+
+        // NEW: initialize rule states at start
+        UpdateLifeSupportCrisisState();
+        UpdateReactorCollapseState();
         RefreshLifeSupportCrisisUI();
     }
 
@@ -109,7 +122,7 @@ public class DeckClicker : MonoBehaviour
             drawsText.text = $"{drawsUsed}/{maxDrawsThisDay}";
     }
 
-    // --- Life Support rule (core) ---
+    // --- Life Support rule ---
     private bool IsLifeSupportDown()
     {
         if (lifeSupport == null && ModuleRegistry.Instance != null)
@@ -142,10 +155,8 @@ public class DeckClicker : MonoBehaviour
 
         if (down)
         {
-            // immediate effect: oxygen forced to 0 while LS is down
             resources.oxygen = 0;
 
-            // on-enter: start countdown once
             if (!lsCrisisActive)
             {
                 lsCrisisActive = true;
@@ -155,7 +166,6 @@ public class DeckClicker : MonoBehaviour
         }
         else
         {
-            // on-exit: cancel countdown if repaired
             if (lsCrisisActive)
             {
                 lsCrisisActive = false;
@@ -165,12 +175,10 @@ public class DeckClicker : MonoBehaviour
         }
     }
 
-    // Call ONLY when a card was successfully drawn (a "turn" happened)
     private void TickLifeSupportCrisisOnTurn()
     {
         if (!lsCrisisActive) return;
 
-        // If they repaired LS before this draw, cancel
         if (!IsLifeSupportDown())
         {
             lsCrisisActive = false;
@@ -182,20 +190,62 @@ public class DeckClicker : MonoBehaviour
         lsTurnsLeft = Mathf.Max(0, lsTurnsLeft - 1);
         RefreshLifeSupportCrisisUI();
 
-        // Two turns means: after the 2nd successful draw, turns hits 0 and you lose immediately.
         if (lsTurnsLeft <= 0)
-        {
             EndGameLose("Life Support offline for too long.");
-        }
     }
     // --- end Life Support rule ---
+
+    // --- Reactor rule ---
+    private bool IsReactorDown()
+    {
+        if (reactor == null && ModuleRegistry.Instance != null)
+            reactor = ModuleRegistry.Instance.Get(ModuleType.Reactor); // NEW fallback
+
+        return reactor != null && reactor.Health <= 0;
+    }
+
+    private void UpdateReactorCollapseState()
+    {
+        if (resources == null) return;
+
+        if (IsReactorDown())
+        {
+            resources.power = 0;           // lock power to 0 while reactor is dead
+            reactorCollapseActive = true;
+        }
+        else
+        {
+            reactorCollapseActive = false;
+        }
+    }
+
+    private void TickReactorBlackoutOnTurn()
+    {
+        if (!reactorCollapseActive) return;
+        if (resources == null || resources.power > 0) return;
+        if (blackoutDamagePerTurn <= 0) return;
+
+        if (ModuleRegistry.Instance != null)
+        {
+            foreach (var m in ModuleRegistry.Instance.All)
+                if (m != null) m.Damage(blackoutDamagePerTurn);
+        }
+        else
+        {
+            var modules = FindObjectsByType<StationModule>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var m in modules)
+                if (m != null) m.Damage(blackoutDamagePerTurn);
+        }
+    }
+    // --- end Reactor rule ---
 
     public void OnDeckClicked()
     {
         if (gameEnded) return;
 
-        // Keep rule state up-to-date before doing anything
+        // NEW: keep both rules updated before doing anything
         UpdateLifeSupportCrisisState();
+        UpdateReactorCollapseState();
 
         if (CheckWin())
         {
@@ -211,7 +261,6 @@ public class DeckClicker : MonoBehaviour
 
         if (deckLocked) return;
 
-        // LOCK IMMEDIATELY (prevents same-frame spam)
         LockDeck();
 
         CardKind kind;
@@ -226,9 +275,19 @@ public class DeckClicker : MonoBehaviour
         drawsUsed++;
         RefreshUI();
 
-        // Tick life support countdown AFTER the draw (so they still get the "two more turns")
+        // NEW: apply turn-ticks AFTER the draw
+        UpdateLifeSupportCrisisState();
+        UpdateReactorCollapseState();
+
         TickLifeSupportCrisisOnTurn();
         if (gameEnded) return;
+
+        TickReactorBlackoutOnTurn(); // NEW: damage-all tick
+        if (gameEnded) return;
+
+        // Re-clamp after damage tick (reactor might already be dead; ensures power stays 0)
+        UpdateLifeSupportCrisisState();
+        UpdateReactorCollapseState();
 
         if (kind == CardKind.Event)
         {
@@ -245,8 +304,9 @@ public class DeckClicker : MonoBehaviour
     {
         yield return resolver.Resolve(card);
 
-        // Rule might change after events resolve (repairs/damage)
+        // NEW: update rules after event resolves
         UpdateLifeSupportCrisisState();
+        UpdateReactorCollapseState();
 
         while ((cameraDirector != null && cameraDirector.IsPanning) ||
                (TargetingController.Instance != null && TargetingController.Instance.IsResolving))
@@ -262,8 +322,9 @@ public class DeckClicker : MonoBehaviour
     {
         yield return null;
 
-        // Rule might change after drawing action (no resolve yet, but keep consistent)
+        // NEW: update rules after action draw
         UpdateLifeSupportCrisisState();
+        UpdateReactorCollapseState();
 
         if (!gameEnded)
             UnlockDeck();

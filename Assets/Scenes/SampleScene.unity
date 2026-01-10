@@ -2496,7 +2496,9 @@ MonoBehaviour:
   hand: {fileID: 155244859}
   resources: {fileID: 1496715949}
   lifeSupport: {fileID: 1059482067}
-  lifeSupportTurnsBeforeDeath: 1
+  reactor: {fileID: 1679353349}
+  lifeSupportTurnsBeforeDeath: 2
+  blackoutDamagePerTurn: 1
 --- !u!1 &1553474279
 GameObject:
   m_ObjectHideFlags: 0
