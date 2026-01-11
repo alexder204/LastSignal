@@ -5150,11 +5150,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1634189566}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 280}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -300, y: 0}
   m_SizeDelta: {x: 160, y: 180}
-  m_Pivot: {x: 0, y: 0}
+  m_Pivot: {x: 1, y: 0}
 --- !u!114 &404235390
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12686,6 +12686,10 @@ MonoBehaviour:
   resolver: {fileID: 396754127}
   hand: {fileID: 155244859}
   resources: {fileID: 1496715949}
+  lifeSupportTurnsBeforeDeath: 2
+  buildingIntegrityTurnsBeforeDeath: 1
+  powerBlackoutDamagePerTurn: 1
+  defenseEventChancePenalty: 0.1
 --- !u!1 &1507166189
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f52a42171cdf2c44282640e3d2fb6f08, type: 3}
   m_Name: WildCard
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: Action2
+  cardName: Wild Card
   description: +1 to Any Module
   cardArt: {fileID: 21300000, guid: 1a83e21a92fcb334b91da0a8207a2bf3, type: 3}
   kind: 1
+  drawWeight: 0.3
   targetRule: 0
   requiredType: 1
   requiresTarget: 1
