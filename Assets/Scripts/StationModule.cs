@@ -23,16 +23,6 @@ public class StationModule : MonoBehaviour
 
     public event Action<StationModule> OnHPChanged;
 
-    [Header("Animation (State Names Only)")]
-    public Animator animator;
-
-    public string idleState = "Idle";
-    public string brokenIdleState = "BrokenIdle";
-    public string eventState = "Event";
-    public string actionState = "Action"; // or "Repair"
-
-    public float fallbackAnimSeconds = 0.8f;
-
     [Header("Auto Highlight")]
     public bool autoCollectRenderers = true;
     private Renderer[] cachedRenderers;
@@ -51,6 +41,20 @@ public class StationModule : MonoBehaviour
     private Color cachedEmissionColor;
     private bool hasEmission;
 
+    [Header("Animation (General / Best-Effort)")]
+    public Animator animator;
+
+    // These are STATE names (case-sensitive). If your states are in a sub-state machine,
+    // this script will also try "Base Layer.<Name>" and "Base Layer/<Name>".
+    public string idleState = "Idle";
+    public string brokenIdleState = "BrokenIdle";
+    public string eventState = "Event";
+    public string actionState = "Action"; // or "Repair"
+
+    // Jam-safe fixed durations (avoids relying on clip lookup)
+    public float eventSeconds = 0.6f;
+    public float actionSeconds = 0.6f;
+
     public int Health => health;
     public int MaxHealth => maxHealth;
     public bool IsDamaged => health < maxHealth;
@@ -63,63 +67,94 @@ public class StationModule : MonoBehaviour
         if (autoCollectRenderers)
             CollectRenderers();
 
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>(true);
+
+        // Your original behavior: if health not set, start at max
         if (health <= 0) health = maxHealth;
         health = Mathf.Clamp(health, 0, maxHealth);
         if (health == 0) disabled = true;
 
         CacheTVMaterial();
         SetTVColor(tvNormalColor);
+
+        // Best-effort: settle into correct idle if it exists
+        TrySettleIdleFromHP();
     }
-
-    float GetAnimLength(string stateName)
-    {
-        if (animator == null || animator.runtimeAnimatorController == null)
-            return fallbackAnimSeconds;
-
-        foreach (var clip in animator.runtimeAnimatorController.animationClips)
-        {
-            if (clip.name == stateName)
-                return clip.length;
-        }
-
-        return fallbackAnimSeconds;
-    }
-
-    void SetIdleFromHealth()
-    {
-        if (animator == null) return;
-
-        if (health <= 0)
-            animator.Play(brokenIdleState, 0, 0f);
-        else
-            animator.Play(idleState, 0, 0f);
-    }
-
-    public IEnumerator PlayEventAnimThenSettle()
-    {
-        if (animator == null) yield break;
-
-        animator.Play(eventState, 0, 0f);
-        yield return new WaitForSeconds(GetAnimLength(eventState));
-
-        SetIdleFromHealth();
-    }
-
-    public IEnumerator PlayActionAnimThenSettle()
-    {
-        if (animator == null) yield break;
-
-        animator.Play(actionState, 0, 0f);
-        yield return new WaitForSeconds(GetAnimLength(actionState));
-
-        SetIdleFromHealth();
-    }
-
 
     void CollectRenderers()
     {
         cachedRenderers = GetComponentsInChildren<Renderer>(true);
     }
+
+    #region Animation Helpers (GENERAL)
+
+    private bool TryPlayStateFast(string stateName, float normalizedTime = 0f)
+    {
+        if (string.IsNullOrWhiteSpace(stateName)) return false;
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>(true);
+
+        if (animator == null) return false;
+
+        // Try a few common forms Unity accepts
+        string[] candidates =
+        {
+            stateName,
+            $"Base Layer.{stateName}",
+            $"Base Layer/{stateName}",
+        };
+
+        for (int layer = 0; layer < animator.layerCount; layer++)
+        {
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                int h = Animator.StringToHash(candidates[i]);
+                if (animator.HasState(layer, h))
+                {
+                    animator.Play(h, layer, normalizedTime);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void TrySettleIdleFromHP()
+    {
+        // IMPORTANT: only settle into a state if THAT state exists.
+        // If it doesn't exist on this module's animator/controller, do nothing.
+        if (health <= 0)
+        {
+            TryPlayStateFast(brokenIdleState, 0f);
+        }
+        else
+        {
+            TryPlayStateFast(idleState, 0f);
+        }
+    }
+
+    public IEnumerator PlayEventAnimThenSettle()
+    {
+        bool played = TryPlayStateFast(eventState, 0f);
+        if (played && eventSeconds > 0f)
+            yield return new WaitForSeconds(eventSeconds);
+
+        TrySettleIdleFromHP();
+    }
+
+    public IEnumerator PlayActionAnimThenSettle()
+    {
+        bool played = TryPlayStateFast(actionState, 0f);
+        if (played && actionSeconds > 0f)
+            yield return new WaitForSeconds(actionSeconds);
+
+        TrySettleIdleFromHP();
+    }
+
+    #endregion
 
     #region TV
 
@@ -195,6 +230,7 @@ public class StationModule : MonoBehaviour
 
     void OnMouseDown()
     {
+        // Allow clicking even when disabled (so you can repair broken parts)
         if (TargetingController.Instance != null && TargetingController.Instance.IsResolving)
             return;
 
@@ -222,6 +258,7 @@ public class StationModule : MonoBehaviour
 
     public void Repair(int amount)
     {
+        // IMPORTANT: allow repair from 0
         if (amount <= 0) return;
 
         int before = health;
