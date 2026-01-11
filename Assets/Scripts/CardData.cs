@@ -14,6 +14,9 @@ public class CardData : ScriptableObject
 
     public CardKind kind;
 
+    [Header("Draw Weight (rarity)")]
+    [Min(0f)] public float drawWeight = 1f; // 0 = never draw, 1 = normal, 0.2 = rare
+
     public enum TargetRule
     {
         AnyModule,      // wildcard

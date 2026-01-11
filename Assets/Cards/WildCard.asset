@@ -10,21 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f52a42171cdf2c44282640e3d2fb6f08, type: 3}
-  m_Name: Event1
+  m_Name: WildCard
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: Event1
-  description: Event 1 hits life Support
-  cardArt: {fileID: 21300000, guid: 4a1d9d9bb6b939f489c05c6508554157, type: 3}
-  kind: 0
-  targetRule: 1
+  cardName: Action2
+  description: +1 to Any Module
+  cardArt: {fileID: 21300000, guid: 1a83e21a92fcb334b91da0a8207a2bf3, type: 3}
+  kind: 1
+  targetRule: 0
   requiredType: 1
-  requiresTarget: 0
+  requiresTarget: 1
   useRandomTargetIfNone: 0
-  oxygenDelta: 0
-  powerDelta: -2
-  hullDelta: 0
   signalDelta: 0
-  moduleDamage: 2
-  moduleRepair: 0
+  moduleDamage: 0
+  moduleRepair: 1
   cameraHoldSeconds: 0.6
-  flashAlarmDuringResolve: 1
+  flashAlarmDuringResolve: 0

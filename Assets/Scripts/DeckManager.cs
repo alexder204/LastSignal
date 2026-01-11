@@ -20,7 +20,31 @@ public class DeckManager : MonoBehaviour
     private CardData DrawFrom(List<CardData> deck)
     {
         if (deck == null || deck.Count == 0) return null;
-        int i = Random.Range(0, deck.Count);
-        return deck[i];
+
+        float total = 0f;
+        for (int i = 0; i < deck.Count; i++)
+        {
+            var c = deck[i];
+            if (c == null) continue;
+            if (c.drawWeight <= 0f) continue;
+            total += c.drawWeight;
+        }
+
+        if (total <= 0f) return null;
+
+        float roll = Random.value * total;
+        float acc = 0f;
+
+        for (int i = 0; i < deck.Count; i++)
+        {
+            var c = deck[i];
+            if (c == null) continue;
+            if (c.drawWeight <= 0f) continue;
+
+            acc += c.drawWeight;
+            if (roll <= acc) return c;
+        }
+
+        return null;
     }
 }
