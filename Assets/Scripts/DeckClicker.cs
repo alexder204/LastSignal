@@ -243,7 +243,10 @@ public class DeckClicker : MonoBehaviour
     {
         if (gameEnded) return;
 
-        // NEW: keep both rules updated before doing anything
+        // Block drawing while player is choosing overflow replacement/trash
+        if (hand != null && hand.IsChoosingOverflow) return;
+
+        // Keep rules updated before doing anything
         UpdateLifeSupportCrisisState();
         UpdateReactorCollapseState();
 
@@ -253,6 +256,7 @@ public class DeckClicker : MonoBehaviour
             return;
         }
 
+        // HARD STOP: if day is over, switch days (and do NOT draw)
         if (drawsUsed >= maxDrawsThisDay)
         {
             AdvanceDay();
@@ -261,6 +265,7 @@ public class DeckClicker : MonoBehaviour
 
         if (deckLocked) return;
 
+        // LOCK IMMEDIATELY
         LockDeck();
 
         CardKind kind;
@@ -275,15 +280,23 @@ public class DeckClicker : MonoBehaviour
         drawsUsed++;
         RefreshUI();
 
-        // NEW: apply turn-ticks AFTER the draw
+        // Apply turn-ticks AFTER the draw
         UpdateLifeSupportCrisisState();
         UpdateReactorCollapseState();
 
         TickLifeSupportCrisisOnTurn();
-        if (gameEnded) return;
+        if (gameEnded)
+        {
+            UnlockDeck();
+            return;
+        }
 
-        TickReactorBlackoutOnTurn(); // NEW: damage-all tick
-        if (gameEnded) return;
+        TickReactorBlackoutOnTurn();
+        if (gameEnded)
+        {
+            UnlockDeck();
+            return;
+        }
 
         // Re-clamp after damage tick (reactor might already be dead; ensures power stays 0)
         UpdateLifeSupportCrisisState();
@@ -295,10 +308,18 @@ public class DeckClicker : MonoBehaviour
         }
         else
         {
-            hand.AddCard(card);
+            // If hand is full: start overflow choice and UNLOCK NOW (do not run UnlockNextFrame)
+            if (!hand.AddCard(card))
+            {
+                hand.StartOverflowChoice(card);
+                UnlockDeck();
+                return;
+            }
+
             StartCoroutine(UnlockNextFrame());
         }
     }
+
 
     private IEnumerator ResolveEventAndUnlock(CardData card)
     {

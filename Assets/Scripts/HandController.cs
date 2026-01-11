@@ -1,25 +1,53 @@
+// HandController.cs
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class HandController : MonoBehaviour
 {
+    [Header("Hand Limit")]
+    public int maxHandSize = 5;
+
+    [Header("Overflow Popup UI (assign in Inspector)")]
+    public ActionOverflowPopupUI overflowPopup;
+
     public Transform handRoot;
     public CardView cardPrefab;
 
     private readonly List<CardData> cards = new();
     private readonly List<CardView> views = new();
 
+    private CardData pendingOverflowCard;
+    public bool IsChoosingOverflow => pendingOverflowCard != null;
+
     void Awake()
     {
         if (handRoot == null) handRoot = transform;
     }
 
-    public void AddCard(CardData card)
+    // returns true if added, false if full
+    public bool AddCard(CardData card)
     {
+        if (card == null) return false;
+        if (cards.Count >= maxHandSize) return false;
+
         cards.Add(card);
         Render();
+        return true;
+    }
+
+    // call when AddCard fails (hand full)
+    public void StartOverflowChoice(CardData drawnCard)
+    {
+        if (drawnCard == null) return;
+        if (pendingOverflowCard != null) return;
+
+        pendingOverflowCard = drawnCard;
+
+        if (overflowPopup != null)
+            overflowPopup.Show(drawnCard, DiscardOverflow);
+
+        Render(); // clicking hand cards now means "replace"
     }
 
     public void RemoveCard(CardData card)
@@ -42,16 +70,25 @@ public class HandController : MonoBehaviour
         }
     }
 
-    private void OnCardClicked(CardData card)
+    private void OnCardClicked(CardData clickedCard)
     {
-        if (card.requiresTarget)
+        if (clickedCard == null) return;
+
+        // Overflow mode: click a card to replace it
+        if (pendingOverflowCard != null)
         {
-            TargetingController.Instance.StartTargeting(card);
+            ReplaceCard(clickedCard);
+            return;
+        }
+
+        // Normal behavior: play card
+        if (clickedCard.requiresTarget)
+        {
+            TargetingController.Instance.StartTargeting(clickedCard);
         }
         else
         {
-            // no target → resolve instantly
-            StartCoroutine(ResolveImmediate(card));
+            StartCoroutine(ResolveImmediate(clickedCard));
         }
     }
 
@@ -61,4 +98,27 @@ public class HandController : MonoBehaviour
         RemoveCard(card);
     }
 
+    private void ReplaceCard(CardData toReplace)
+    {
+        int idx = cards.IndexOf(toReplace);
+        if (idx < 0) return;
+
+        cards[idx] = pendingOverflowCard;
+        EndOverflowChoice();
+    }
+
+    private void DiscardOverflow()
+    {
+        EndOverflowChoice();
+    }
+
+    private void EndOverflowChoice()
+    {
+        pendingOverflowCard = null;
+
+        if (overflowPopup != null)
+            overflowPopup.Hide();
+
+        Render();
+    }
 }
