@@ -108,13 +108,11 @@ public class TargetingController : MonoBehaviour
             if (!on)
             {
                 m.SetHighlighted(false);
-                m.SetAlarm(false);
                 continue;
             }
 
             bool valid = IsValidTarget(pendingCard, m);
             m.SetHighlighted(valid);
-            m.SetAlarm(valid); // optional, remove if you don’t want alarms
         }
     }
 }
