@@ -1,26 +1,15 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class MainMenu : MonoBehaviour
 {
 
     public GameObject CreditsMenuUI;
-    public GameObject settingsMenuUI;
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    private void OpenCredits()
+    public void OpenCredits()
     {
         if (CreditsMenuUI == null)
         {
@@ -28,10 +17,9 @@ public class MainMenu : MonoBehaviour
         }
 
         CreditsMenuUI.SetActive(true);
-        //SceneManager.UnloadSceneAsync("MainMenu");
     }
 
-    private void CloseCredits()
+    public void CloseCredits()
     {
         if (CreditsMenuUI == null)
         {
@@ -41,18 +29,18 @@ public class MainMenu : MonoBehaviour
         CreditsMenuUI.SetActive(false);
     }
 
-    public void OpenSettings()
+    public void StartGame()
     {
-        if (settingsMenuUI == null)
-        {
-            return;
-        }
-
-        settingsMenuUI.SetActive(true);
+        SceneManager.LoadScene("Game");
     }
 
-
-
-
+    public void QuitGame()
+    {
+        #if UNITY_EDITOR
+            EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
+    }
 
 }
