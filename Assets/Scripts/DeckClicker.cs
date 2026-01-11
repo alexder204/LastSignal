@@ -51,6 +51,10 @@ public class DeckClicker : MonoBehaviour
     public int powerBlackoutDamagePerTurn = 1;
     [Range(0f, 1f)] public float defenseEventChancePenalty = 0.10f;
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip drawCardSFX;
+
     // cached modules
     private StationModule lifeSupport;
     private StationModule power;
@@ -75,6 +79,8 @@ public class DeckClicker : MonoBehaviour
         if (hand == null) hand = FindFirstObjectByType<HandController>();
         if (deckButton == null) deckButton = GetComponent<Button>();
         if (resources == null) resources = FindFirstObjectByType<ResourceManager>();
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+
     }
 
     void Start()
@@ -356,6 +362,12 @@ public class DeckClicker : MonoBehaviour
 
         LockDeck();
 
+        // play sound
+        if (audioSource != null && drawCardSFX != null)
+        {
+            audioSource.PlayOneShot(drawCardSFX);
+        }
+            
         CardKind kind;
         float effectiveChance = GetEffectiveEventChance();
         CardData card = deck.DrawRandomByChance(effectiveChance, out kind);
