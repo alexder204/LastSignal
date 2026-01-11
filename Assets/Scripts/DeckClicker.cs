@@ -79,11 +79,23 @@ public class DeckClicker : MonoBehaviour
     void Start()
     {
         baseEventChance = eventChance;
+        StartCoroutine(Startup());
+    }
+
+    private IEnumerator Startup()
+    {
+        // Wait for other Awake/Start to run and for registries/aggregates to populate.
+        yield return null;
+        yield return null;
+
         CacheAggregates();
+
         StartDay(1);
+
         UpdateRuleStates();
         RefreshStatusUI();
     }
+
 
     // 🔴 IMPORTANT: each aggregate should live on a GameObject
     // named after its system (LifeSupport, Power, Comms, etc.)
