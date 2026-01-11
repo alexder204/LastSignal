@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Solar Repair
   description: +1 to Power
-  cardArt: {fileID: 21300000, guid: 1a83e21a92fcb334b91da0a8207a2bf3, type: 3}
+  cardArt: {fileID: 21300000, guid: 35ad9e1e52abb224aa2fe94bfd417a9c, type: 3}
   kind: 1
   drawWeight: 0.6
   targetRule: 1

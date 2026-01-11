@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Hail Storm
   description: A hail storm hits the circuit box. -2 to comms
-  cardArt: {fileID: 21300000, guid: 4a1d9d9bb6b939f489c05c6508554157, type: 3}
+  cardArt: {fileID: 21300000, guid: dc9819c962c3b384babf3fc87f1cdbc4, type: 3}
   kind: 0
   drawWeight: 0.2
   targetRule: 1
