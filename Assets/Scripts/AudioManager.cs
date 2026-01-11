@@ -1,72 +1,39 @@
 using UnityEngine;
+using UnityEngine.Audio;
+using TMPro;
 
-public class AudioManager : MonoBehaviour
+public class AudioSlider : MonoBehaviour
 {
-    public static AudioManager Instance { get; private set; }
+    [SerializeField]
+    private AudioMixer Mixer;
+    [SerializeField]
+    private AudioSource AudioSource;
+    [SerializeField]
+    private TextMeshProUGUI ValueText;
+    [SerializeField]
+    private AudioMixMode MixMode;
 
-    [SerializeField] private AudioSource musicSource;
-    [SerializeField] private float defaultMusicVolume = 1f;
-
-    private const string MusicVolumeKey = "MusicVolume";
-
-    void Awake()
+    public void OnChangeSlider(float Value)
     {
-        if (Instance != null && Instance != this)
+        ValueText.SetText($"{(Value * 100).ToString("N0")}");
+
+        switch(MixMode)
         {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        var volume = PlayerPrefs.GetFloat(MusicVolumeKey, defaultMusicVolume);
-        ApplyVolume(Mathf.Clamp01(volume));
-        TryPlayMusic();
-    }
-
-    public float MusicVolume
-    {
-        get
-        {
-            if (musicSource != null)
-            {
-                return musicSource.volume;
-            }
-
-            return AudioListener.volume;
+            case AudioMixMode.LinearAudioSourceVolume:
+                AudioSource.volume = Value;
+                break;
+            case AudioMixMode.LinearMixerVolume:
+                Mixer.SetFloat("Volume", (-80 + Value * 100));
+                break;
+            case AudioMixMode.LogrithmicMixerVolume:
+                Mixer.SetFloat("Volume", Mathf.Log10(Value) * 20);
+                break;
         }
     }
-
-    public void SetMusicVolume(float volume)
+    public enum AudioMixMode
     {
-        volume = Mathf.Clamp01(volume);
-        ApplyVolume(volume);
-        PlayerPrefs.SetFloat(MusicVolumeKey, volume);
-    }
-
-    private void ApplyVolume(float volume)
-    {
-        if (musicSource != null)
-        {
-            musicSource.volume = volume;
-            return;
-        }
-
-        AudioListener.volume = volume;
-    }
-
-    private void TryPlayMusic()
-    {
-        if (musicSource == null || musicSource.clip == null)
-        {
-            return;
-        }
-
-        if (!musicSource.isPlaying)
-        {
-            musicSource.loop = true;
-            musicSource.Play();
-        }
+        LinearAudioSourceVolume,
+        LinearMixerVolume,
+        LogrithmicMixerVolume
     }
 }
