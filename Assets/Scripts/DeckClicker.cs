@@ -278,8 +278,17 @@ public class DeckClicker : MonoBehaviour
         if (gameEnded) return;
         if (hand != null && hand.IsChoosingOverflow) return;
 
+        // Win check FIRST (before any rule state can modify signal, e.g. comms reset)
+        if (CheckWin())
+        {
+            EndGameWin();
+            return;
+        }
+
+        // Now update rules / UI
         UpdateRuleStates();
 
+        // Safety: if win was achieved and rules didn't wipe it, still win
         if (CheckWin())
         {
             EndGameWin();
@@ -288,13 +297,13 @@ public class DeckClicker : MonoBehaviour
 
         if (drawsUsed >= maxDrawsThisDay)
         {
-            if (biCrisisActive && buildingIntegrity.IsDead)
+            if (biCrisisActive && buildingIntegrity != null && buildingIntegrity.IsDead)
             {
                 EndGameLose("Building Integrity failed (no turns left).");
                 return;
             }
 
-            if (lsCrisisActive && lifeSupport.IsDead)
+            if (lsCrisisActive && lifeSupport != null && lifeSupport.IsDead)
             {
                 EndGameLose("Life Support offline (no turns left).");
                 return;
@@ -327,7 +336,9 @@ public class DeckClicker : MonoBehaviour
         }
 
         if (kind == CardKind.Event)
+        {
             StartCoroutine(ResolveEventAndUnlock(card));
+        }
         else
         {
             if (!hand.AddCard(card))
@@ -336,13 +347,22 @@ public class DeckClicker : MonoBehaviour
                 UnlockDeck();
                 return;
             }
+
             StartCoroutine(UnlockNextFrame());
         }
     }
 
+
     private IEnumerator ResolveEventAndUnlock(CardData card)
     {
         yield return resolver.Resolve(card);
+
+        if (CheckWin())
+        {
+            EndGameWin();
+            yield break;
+        }
+
         UpdateRuleStates();
 
         if (CheckWin())
@@ -352,24 +372,46 @@ public class DeckClicker : MonoBehaviour
         }
 
         while ((cameraDirector != null && cameraDirector.IsPanning) ||
-               (TargetingController.Instance != null && TargetingController.Instance.IsResolving))
+            (TargetingController.Instance != null && TargetingController.Instance.IsResolving))
             yield return null;
 
         UnlockDeck();
     }
 
+
     public void EvaluateEndConditions()
     {
         if (gameEnded) return;
+
+        if (CheckWin())
+        {
+            EndGameWin();
+            return;
+        }
+
         UpdateRuleStates();
+
         if (CheckWin()) EndGameWin();
     }
 
     private IEnumerator UnlockNextFrame()
     {
         yield return null;
+
+        if (CheckWin())
+        {
+            EndGameWin();
+            yield break;
+        }
+
         UpdateRuleStates();
-        if (CheckWin()) EndGameWin();
+
+        if (CheckWin())
+        {
+            EndGameWin();
+            yield break;
+        }
+
         UnlockDeck();
     }
 

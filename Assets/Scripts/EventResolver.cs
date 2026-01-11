@@ -62,9 +62,11 @@ public class EventResolver : MonoBehaviour
             yield return cameraDirector.Focus(fp, true);
         }
 
-        // Signal-only apply
         if (resources != null)
+        {
             resources.ApplySignal(card.signalDelta);
+            FindFirstObjectByType<DeckClicker>()?.EvaluateEndConditions();
+        }
 
         if (target != null)
         {

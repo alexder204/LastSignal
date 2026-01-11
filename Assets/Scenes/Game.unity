@@ -15220,7 +15220,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceManager
   signal: 0
-  maxSignal: 99
+  maxSignal: 10
 --- !u!4 &1496715950
 Transform:
   m_ObjectHideFlags: 0
