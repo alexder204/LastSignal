@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class DeckClicker : MonoBehaviour
 {
@@ -14,6 +15,17 @@ public class DeckClicker : MonoBehaviour
     [Header("Progression")]
     public int day = 1;
     public int signalGoal = 10;
+
+    [Header("Win / Lose Scenes")]
+    public bool useScenesForEnd = true;
+
+    public string winSceneName = "WinScene";
+    public string loseSceneName = "LoseScene";
+
+    [Tooltip("Optional: delay before switching scenes (seconds).")]
+    public float endSceneDelay = 0f;
+
+    private bool gameEnded;
 
     [Header("Day Rules")]
     public int startingDrawsPerDay = 10;
@@ -49,8 +61,6 @@ public class DeckClicker : MonoBehaviour
     // Life support rule state
     private bool lsCrisisActive;
     private int lsTurnsLeft;
-
-    private bool gameEnded;
 
     void Awake()
     {
@@ -99,18 +109,50 @@ public class DeckClicker : MonoBehaviour
         StartDay(day + 1);
     }
 
+    // DeckClicker.cs (add these methods anywhere in the class)
     private bool CheckWin()
     {
         if (resources == null) return false;
         return resources.signal >= signalGoal;
     }
 
+    private void EndGameWin()
+    {
+        if (gameEnded) return;
+        gameEnded = true;
+
+        Debug.Log("WIN: Signal goal reached.");
+
+        LockDeck();
+        if (TargetingController.Instance != null)
+            TargetingController.Instance.CancelTargeting();
+
+        if (useScenesForEnd)
+            StartCoroutine(LoadEndScene(winSceneName));
+    }
+
     private void EndGameLose(string reason)
     {
+        if (gameEnded) return;
         gameEnded = true;
-        Debug.Log($"GAME OVER: {reason}");
-        if (statusText != null) statusText.text = "GAME OVER";
+
+        Debug.Log($"LOSE: {reason}");
+
         LockDeck();
+        if (TargetingController.Instance != null)
+            TargetingController.Instance.CancelTargeting();
+
+        if (useScenesForEnd)
+            StartCoroutine(LoadEndScene(loseSceneName));
+    }
+
+    private IEnumerator LoadEndScene(string sceneName)
+    {
+        if (endSceneDelay > 0f)
+            yield return new WaitForSeconds(endSceneDelay);
+
+        if (!string.IsNullOrWhiteSpace(sceneName))
+            SceneManager.LoadScene(sceneName);
     }
 
     private void RefreshUI()
@@ -252,7 +294,7 @@ public class DeckClicker : MonoBehaviour
 
         if (CheckWin())
         {
-            Debug.Log("WIN: Signal goal reached.");
+            EndGameWin();
             return;
         }
 
@@ -324,28 +366,44 @@ public class DeckClicker : MonoBehaviour
     private IEnumerator ResolveEventAndUnlock(CardData card)
     {
         yield return resolver.Resolve(card);
-        CheckWinAndEnd();
+
+        if (CheckWin())
+        {
+            EndGameWin();
+            yield break;
+        }
+
         if (gameEnded) yield break;
 
-        // NEW: update rules after event resolves
         UpdateLifeSupportCrisisState();
         UpdateReactorCollapseState();
 
         while ((cameraDirector != null && cameraDirector.IsPanning) ||
-               (TargetingController.Instance != null && TargetingController.Instance.IsResolving))
-        {
+            (TargetingController.Instance != null && TargetingController.Instance.IsResolving))
             yield return null;
-        }
 
         if (!gameEnded)
             UnlockDeck();
+    }
+
+    public void EvaluateEndConditions()
+    {
+        if (gameEnded) return;
+
+        if (CheckWin())
+            EndGameWin();
     }
 
     private IEnumerator UnlockNextFrame()
     {
         yield return null;
 
-        // NEW: update rules after action draw
+        if (CheckWin())
+        {
+            EndGameWin();
+            yield break;
+        }
+
         UpdateLifeSupportCrisisState();
         UpdateReactorCollapseState();
 
@@ -364,21 +422,4 @@ public class DeckClicker : MonoBehaviour
         deckLocked = false;
         if (deckButton != null) deckButton.interactable = true;
     }
-
-    private void CheckWinAndEnd()
-    {
-        if (resources == null) return;
-
-        if (resources.signal >= signalGoal)
-        {
-            Debug.Log("WIN: Signal goal reached. Closing game.");
-
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
-        }
-    }
-
 }
