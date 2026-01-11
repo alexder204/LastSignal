@@ -587,6 +587,7 @@ GameObject:
   - component: {fileID: 41119540}
   - component: {fileID: 41119542}
   - component: {fileID: 41119541}
+  - component: {fileID: 41119543}
   m_Layer: 0
   m_Name: Turret
   m_TagString: Untagged
@@ -646,6 +647,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 41119543}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -672,6 +679,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.8, z: 0}
+--- !u!95 &41119543
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 41119539}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 69cd37bbe20d0d5448290c6782128551, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &55357603
 GameObject:
   m_ObjectHideFlags: 0
@@ -2533,8 +2562,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -2565,7 +2594,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -332.4802, y: 0, z: -439.73227, w: -53.625835}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2720,9 +2749,22 @@ MonoBehaviour:
   eventDeck:
   - {fileID: 11400000, guid: f1effa03254b6104795021012ce0651c, type: 2}
   - {fileID: 11400000, guid: d499ef197da3f714c99faef476af0930, type: 2}
+  - {fileID: 11400000, guid: f1effa03254b6104795021012ce0651c, type: 2}
+  - {fileID: 11400000, guid: 182f74181ec6bdb44a1ce4636e008136, type: 2}
+  - {fileID: 11400000, guid: 3259c8e6c1ac2e944bd557a8a5b52b6f, type: 2}
+  - {fileID: 11400000, guid: 5b3f6d9a63c982240bcee76872c409d8, type: 2}
+  - {fileID: 11400000, guid: d9a8b0f901a3e8f47977325dabe32113, type: 2}
+  - {fileID: 11400000, guid: 0ac4fdb727d34a84da8ecdd50d8e3d2c, type: 2}
   actionDeck:
   - {fileID: 11400000, guid: 6a8f466b9ac6ab140948a09d19205792, type: 2}
   - {fileID: 11400000, guid: 0bfe43df133e37c4a87e0fc8e2310868, type: 2}
+  - {fileID: 11400000, guid: af423499274d05f47b2ad1c0ed4282e3, type: 2}
+  - {fileID: 11400000, guid: 1ef3974b778edb742b21372c91940061, type: 2}
+  - {fileID: 11400000, guid: 78be3cfa9d1e26a459bb537c65fa0e29, type: 2}
+  - {fileID: 11400000, guid: 6a8f466b9ac6ab140948a09d19205792, type: 2}
+  - {fileID: 11400000, guid: 1e245eca540fd0944973a1cbb819c460, type: 2}
+  - {fileID: 11400000, guid: 033c2239f10a40b4a82066077301e6b2, type: 2}
+  - {fileID: 11400000, guid: bd37d43b3b8e9674e9196f511b2dce36, type: 2}
 --- !u!4 &218898652
 Transform:
   m_ObjectHideFlags: 0
@@ -5796,8 +5838,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 332a927300a548345a7093b357a2764d, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -7939,6 +7981,7 @@ GameObject:
   - component: {fileID: 629333262}
   - component: {fileID: 629333263}
   - component: {fileID: 629333264}
+  - component: {fileID: 629333265}
   m_Layer: 0
   m_Name: Window2
   m_TagString: Untagged
@@ -7984,6 +8027,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 629333265}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -8010,6 +8059,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0.58, z: 0}
+--- !u!95 &629333265
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 629333261}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c44e52073fbf405479790c519dc2b1d9, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &644399590
 GameObject:
   m_ObjectHideFlags: 0
@@ -10087,6 +10158,7 @@ GameObject:
   - component: {fileID: 926916673}
   - component: {fileID: 926916674}
   - component: {fileID: 926916675}
+  - component: {fileID: 926916676}
   m_Layer: 0
   m_Name: Window4
   m_TagString: Untagged
@@ -10132,6 +10204,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 926916676}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -10158,6 +10236,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0.58, z: 0}
+--- !u!95 &926916676
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 926916672}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b1347926252721c4eae7a4aedc460f44, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &971102075
 GameObject:
   m_ObjectHideFlags: 0
@@ -11941,6 +12041,7 @@ GameObject:
   - component: {fileID: 1217539771}
   - component: {fileID: 1217539773}
   - component: {fileID: 1217539772}
+  - component: {fileID: 1217539774}
   m_Layer: 0
   m_Name: Turret
   m_TagString: Untagged
@@ -12000,6 +12101,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 1217539774}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -12026,6 +12133,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.8, z: 0}
+--- !u!95 &1217539774
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1217539770}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 4fe53fc3fb1fa40468dbd22d6cdb72a8, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1243442850
 GameObject:
   m_ObjectHideFlags: 0
@@ -13159,6 +13288,7 @@ GameObject:
   - component: {fileID: 1361236410}
   - component: {fileID: 1361236411}
   - component: {fileID: 1361236412}
+  - component: {fileID: 1361236413}
   m_Layer: 0
   m_Name: Window3
   m_TagString: Untagged
@@ -13204,6 +13334,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 1361236413}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -13230,6 +13366,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0.58, z: 0}
+--- !u!95 &1361236413
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1361236409}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: e20d3f7aee205334a9a8cff6889d7c1c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1380485613
 GameObject:
   m_ObjectHideFlags: 0
@@ -14317,8 +14475,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: cf5f6d23369d7cd40a69ebd2a0a008f8, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -15990,6 +16148,7 @@ GameObject:
   - component: {fileID: 1674861879}
   - component: {fileID: 1674861881}
   - component: {fileID: 1674861880}
+  - component: {fileID: 1674861882}
   m_Layer: 0
   m_Name: Turret
   m_TagString: Untagged
@@ -16049,6 +16208,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 1674861882}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -16075,6 +16240,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.8, z: 0}
+--- !u!95 &1674861882
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1674861878}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 801b3d1f96ff89a47bb1d7ad18cecb71, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1676584913
 GameObject:
   m_ObjectHideFlags: 0
@@ -19698,7 +19885,7 @@ Transform:
   m_GameObject: {fileID: 1139909656203567951}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 28.71, y: 0, z: 12.062128}
+  m_LocalPosition: {x: 28.71, y: 0, z: 12.06213}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -19829,7 +20016,7 @@ Transform:
   m_GameObject: {fileID: 6566617629832726522}
   serializedVersion: 2
   m_LocalRotation: {x: 0.000000020953191, y: 0.000000008894144, z: -0.078472555, w: 0.9969163}
-  m_LocalPosition: {x: -0.050087836, y: 0.5756465, z: -0.22345348}
+  m_LocalPosition: {x: -0.05008784, y: 0.5756465, z: -0.2234535}
   m_LocalScale: {x: 7.5472493, y: 7.5472493, z: 7.54725}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21762,6 +21949,7 @@ GameObject:
   - component: {fileID: 543450653162719106}
   - component: {fileID: 919132148618206521}
   - component: {fileID: 919132148618206522}
+  - component: {fileID: 919132148618206523}
   m_Layer: 0
   m_Name: Window1
   m_TagString: Untagged
@@ -21789,6 +21977,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 919132148618206523}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -21815,6 +22009,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0.58, z: 0}
+--- !u!95 &919132148618206523
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132148618206520}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: df1e1b4c6beb9384ab7f4b0e6839b575, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &919132148712306776
 GameObject:
   m_ObjectHideFlags: 0
@@ -21826,6 +22042,7 @@ GameObject:
   - component: {fileID: 543450652967379682}
   - component: {fileID: 919132148712306778}
   - component: {fileID: 919132148712306777}
+  - component: {fileID: 919132148712306779}
   m_Layer: 0
   m_Name: Radio
   m_TagString: Untagged
@@ -21853,6 +22070,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 919132148712306779}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -21879,6 +22102,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 10.476532, y: 10, z: 10}
   m_Center: {x: 3.5649872, y: 0, z: 0}
+--- !u!95 &919132148712306779
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132148712306776}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 7ecef536156f3674ebf1bc5edced796e, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &919132148738101195
 GameObject:
   m_ObjectHideFlags: 0
@@ -21916,6 +22161,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 0}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 0}
   tvMaterialIndex: 0
@@ -21952,6 +22203,7 @@ GameObject:
   - component: {fileID: 1711813855655449083}
   - component: {fileID: 3469287837503825203}
   - component: {fileID: 3469287837503825202}
+  - component: {fileID: 3469287837503825204}
   m_Layer: 0
   m_Name: Circuit
   m_TagString: Untagged
@@ -22280,6 +22532,7 @@ GameObject:
   - component: {fileID: 747880253854187}
   - component: {fileID: 1139909656203567953}
   - component: {fileID: 1139909656203567952}
+  - component: {fileID: 1139909656203567954}
   m_Layer: 0
   m_Name: SolarPanel
   m_TagString: Untagged
@@ -22307,6 +22560,12 @@ MonoBehaviour:
   maxHealth: 10
   health: 0
   disabled: 0
+  animator: {fileID: 1139909656203567954}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -22333,6 +22592,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 9.613066, y: 3.6262803, z: 7.82981}
   m_Center: {x: 0.31761932, y: 5.538762, z: -0.5850172}
+--- !u!95 &1139909656203567954
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1139909656203567951}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: f2260d96216e53b49b1ea9d50a6fb206, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!23 &1146267227189747126
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -26207,6 +26488,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 3469287837503825204}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -26233,6 +26520,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.1277413, y: 1.0346198, z: 1.4803736}
   m_Center: {x: -0.0008467734, y: -0.0010501447, z: 0.7401843}
+--- !u!95 &3469287837503825204
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132149175611438}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: a68bb79f36caba340ba41022cfb81ce1, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!33 &3469287837601743532
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -31462,6 +31771,7 @@ GameObject:
   - component: {fileID: 5187066080505611053}
   - component: {fileID: 6924528895967573993}
   - component: {fileID: 6924528895967573992}
+  - component: {fileID: 6924528895967573994}
   m_Layer: 0
   m_Name: O2Canister
   m_TagString: Untagged
@@ -31825,6 +32135,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 6924528895967573994}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -31851,6 +32167,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.66249764, y: 0.9011013, z: 0.6624482}
   m_Center: {x: 0.013078332, y: 0.3547909, z: -0.029299855}
+--- !u!95 &6924528895967573994
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6700465014138757880}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: fcbcb2977a74f6c45b9754a774a2bdba, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!33 &6932023177976439495
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -34445,6 +34783,7 @@ GameObject:
   - component: {fileID: 8824675436924447246}
   - component: {fileID: 8824675436924447248}
   - component: {fileID: 8824675436924447247}
+  - component: {fileID: 8824675436924447249}
   m_Layer: 0
   m_Name: Turret
   m_TagString: Untagged
@@ -35946,6 +36285,12 @@ MonoBehaviour:
   maxHealth: 5
   health: 0
   disabled: 0
+  animator: {fileID: 8824675436924447249}
+  idleState: Idle
+  brokenIdleState: BrokenIdle
+  eventState: Event
+  actionState: Action
+  fallbackAnimSeconds: 0.8
   autoCollectRenderers: 1
   tvRenderer: {fileID: 1564950519}
   tvMaterialIndex: 0
@@ -35972,6 +36317,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.8, z: 0}
+--- !u!95 &8824675436924447249
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8159496829047632052}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2247dbd19ec33ee439dd42dfc0026caa, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!4 &8826712792378986651
 Transform:
   m_ObjectHideFlags: 0

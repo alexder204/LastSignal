@@ -68,8 +68,17 @@ public class EventResolver : MonoBehaviour
 
         if (target != null)
         {
-            if (card.moduleDamage > 0) target.Damage(card.moduleDamage);
-            if (card.moduleRepair > 0) target.Repair(card.moduleRepair);
+            if (card.moduleDamage > 0)
+                target.Damage(card.moduleDamage);
+
+            if (card.moduleRepair > 0)
+                target.Repair(card.moduleRepair);
+
+            // Play animation AFTER health changes
+            if (card.kind == CardKind.Event)
+                yield return target.PlayEventAnimThenSettle();
+            else
+                yield return target.PlayActionAnimThenSettle();
         }
 
         yield return new WaitForSeconds(Mathf.Max(0f, card.cameraHoldSeconds));

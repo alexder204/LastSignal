@@ -16,8 +16,13 @@ public class SystemAggregate : MonoBehaviour
     {
         AutoFillIfEmpty();
         HookModules(true);
-        Recalculate();
     }
+
+    void Start()
+    {
+        Recalculate(); // ← AFTER all StationModule.Awake()
+    }
+
 
     void OnDestroy()
     {

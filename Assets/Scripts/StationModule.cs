@@ -1,6 +1,7 @@
 // StationModule.cs
 using UnityEngine;
 using System;
+using System.Collections;
 
 public class StationModule : MonoBehaviour
 {
@@ -21,6 +22,16 @@ public class StationModule : MonoBehaviour
     [SerializeField] private bool disabled;
 
     public event Action<StationModule> OnHPChanged;
+
+    [Header("Animation (State Names Only)")]
+    public Animator animator;
+
+    public string idleState = "Idle";
+    public string brokenIdleState = "BrokenIdle";
+    public string eventState = "Event";
+    public string actionState = "Action"; // or "Repair"
+
+    public float fallbackAnimSeconds = 0.8f;
 
     [Header("Auto Highlight")]
     public bool autoCollectRenderers = true;
@@ -59,6 +70,51 @@ public class StationModule : MonoBehaviour
         CacheTVMaterial();
         SetTVColor(tvNormalColor);
     }
+
+    float GetAnimLength(string stateName)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null)
+            return fallbackAnimSeconds;
+
+        foreach (var clip in animator.runtimeAnimatorController.animationClips)
+        {
+            if (clip.name == stateName)
+                return clip.length;
+        }
+
+        return fallbackAnimSeconds;
+    }
+
+    void SetIdleFromHealth()
+    {
+        if (animator == null) return;
+
+        if (health <= 0)
+            animator.Play(brokenIdleState, 0, 0f);
+        else
+            animator.Play(idleState, 0, 0f);
+    }
+
+    public IEnumerator PlayEventAnimThenSettle()
+    {
+        if (animator == null) yield break;
+
+        animator.Play(eventState, 0, 0f);
+        yield return new WaitForSeconds(GetAnimLength(eventState));
+
+        SetIdleFromHealth();
+    }
+
+    public IEnumerator PlayActionAnimThenSettle()
+    {
+        if (animator == null) yield break;
+
+        animator.Play(actionState, 0, 0f);
+        yield return new WaitForSeconds(GetAnimLength(actionState));
+
+        SetIdleFromHealth();
+    }
+
 
     void CollectRenderers()
     {
@@ -139,8 +195,6 @@ public class StationModule : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (IsDisabled) return;
-
         if (TargetingController.Instance != null && TargetingController.Instance.IsResolving)
             return;
 
@@ -168,12 +222,13 @@ public class StationModule : MonoBehaviour
 
     public void Repair(int amount)
     {
-        if (amount <= 0 || health == 0) return;
+        if (amount <= 0) return;
 
         int before = health;
         health = Mathf.Min(maxHealth, health + amount);
 
-        if (health > 0) disabled = false;
+        if (health > 0)
+            disabled = false;
 
         if (health != before)
             OnHPChanged?.Invoke(this);

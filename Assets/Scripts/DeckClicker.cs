@@ -20,7 +20,6 @@ public class DeckClicker : MonoBehaviour
     public bool useScenesForEnd = true;
     public string winSceneName = "WinScene";
     public string loseSceneName = "LoseScene";
-    [Tooltip("Optional: delay before switching scenes (seconds).")]
     public float endSceneDelay = 0f;
 
     private bool gameEnded;
@@ -51,14 +50,14 @@ public class DeckClicker : MonoBehaviour
     public int powerBlackoutDamagePerTurn = 1;
     [Range(0f, 1f)] public float defenseEventChancePenalty = 0.10f;
 
-    // cached modules
-    private StationModule lifeSupport;
-    private StationModule power;
-    private StationModule comms;
-    private StationModule buildingIntegrity;
-    private StationModule defense;
+    // === SYSTEM AGGREGATES (THE TRUTH) ===
+    private SystemAggregate lifeSupport;
+    private SystemAggregate power;
+    private SystemAggregate comms;
+    private SystemAggregate buildingIntegrity;
+    private SystemAggregate defense;
 
-    // state
+    // === STATE ===
     private bool lsCrisisActive;
     private int lsTurnsLeft;
 
@@ -80,21 +79,30 @@ public class DeckClicker : MonoBehaviour
     void Start()
     {
         baseEventChance = eventChance;
-        CacheModules();
+        CacheAggregates();
         StartDay(1);
-        UpdateRuleStates();   // initialize warnings/counters if any module starts disabled
+        UpdateRuleStates();
         RefreshStatusUI();
     }
 
-    private void CacheModules()
+    // 🔴 IMPORTANT: each aggregate should live on a GameObject
+    // named after its system (LifeSupport, Power, Comms, etc.)
+    private void CacheAggregates()
     {
-        if (ModuleRegistry.Instance == null) return;
+        if (lifeSupport == null)
+            lifeSupport = GameObject.Find("LifeSupport")?.GetComponent<SystemAggregate>();
 
-        if (lifeSupport == null)        lifeSupport        = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
-        if (power == null)              power              = ModuleRegistry.Instance.Get(ModuleType.Power);
-        if (comms == null)              comms              = ModuleRegistry.Instance.Get(ModuleType.Comms);
-        if (buildingIntegrity == null)  buildingIntegrity  = ModuleRegistry.Instance.Get(ModuleType.BuildingIntegrity);
-        if (defense == null)            defense            = ModuleRegistry.Instance.Get(ModuleType.DefenseSystem);
+        if (power == null)
+            power = GameObject.Find("Power")?.GetComponent<SystemAggregate>();
+
+        if (comms == null)
+            comms = GameObject.Find("Comms")?.GetComponent<SystemAggregate>();
+
+        if (buildingIntegrity == null)
+            buildingIntegrity = GameObject.Find("BuildingIntegrity")?.GetComponent<SystemAggregate>();
+
+        if (defense == null)
+            defense = GameObject.Find("DefenseSystem")?.GetComponent<SystemAggregate>();
     }
 
     private void StartDay(int newDay)
@@ -105,124 +113,36 @@ public class DeckClicker : MonoBehaviour
         maxDrawsThisDay = startingDrawsPerDay + (day - 1) * drawsIncreasePerDay;
         eventChance = Mathf.Min(maxEventChance, baseEventChance + (day - 1) * eventChanceIncreasePerDay);
 
-        if (TargetingController.Instance != null)
-            TargetingController.Instance.CancelTargeting();
+        TargetingController.Instance?.CancelTargeting();
 
         RefreshUI();
         RefreshStatusUI();
     }
 
-    private void AdvanceDay()
-    {
-        StartDay(day + 1);
-    }
+    private void AdvanceDay() => StartDay(day + 1);
 
     private bool CheckWin()
     {
-        if (resources == null) return false;
-        return resources.signal >= signalGoal;
-    }
-
-    private void EndGameWin()
-    {
-        if (gameEnded) return;
-        gameEnded = true;
-
-        LockDeck();
-        if (TargetingController.Instance != null)
-            TargetingController.Instance.CancelTargeting();
-
-        RefreshStatusUI();
-
-        if (useScenesForEnd)
-            StartCoroutine(LoadEndScene(winSceneName));
-    }
-
-    private void EndGameLose(string reason)
-    {
-        if (gameEnded) return;
-        gameEnded = true;
-
-        Debug.Log($"LOSE: {reason}");
-
-        LockDeck();
-        if (TargetingController.Instance != null)
-            TargetingController.Instance.CancelTargeting();
-
-        RefreshStatusUI();
-
-        if (useScenesForEnd)
-            StartCoroutine(LoadEndScene(loseSceneName));
-    }
-
-    private IEnumerator LoadEndScene(string sceneName)
-    {
-        if (endSceneDelay > 0f)
-            yield return new WaitForSeconds(endSceneDelay);
-
-        if (!string.IsNullOrWhiteSpace(sceneName))
-            SceneManager.LoadScene(sceneName);
-    }
-
-    private void RefreshUI()
-    {
-        if (dayText != null)
-            dayText.text = $"Day {day}";
-
-        if (drawsText != null)
-            drawsText.text = $"{drawsUsed}/{maxDrawsThisDay}";
+        return resources != null && resources.signal >= signalGoal;
     }
 
     private float GetEffectiveEventChance()
     {
-        CacheModules();
+        CacheAggregates();
 
         float c = eventChance;
-        if (defense != null && defense.IsDisabled)
+        if (defense != null && defense.IsDead)
             c += defenseEventChancePenalty;
 
         return Mathf.Clamp01(c);
     }
 
-    private void RefreshStatusUI()
-    {
-        if (statusText == null) return;
-
-        if (gameEnded)
-        {
-            statusText.text = "GAME OVER";
-            return;
-        }
-
-        CacheModules();
-
-        string msg = "";
-
-        if (lsCrisisActive)
-            msg += $"LIFE SUPPORT OFFLINE — {lsTurnsLeft} turns left\n";
-
-        if (biCrisisActive)
-            msg += $"BUILDING INTEGRITY FAILED — {biTurnsLeft} turns left\n";
-
-        if (power != null && power.IsDisabled)
-            msg += $"POWER OFFLINE — blackout damage each turn\n";
-
-        if (comms != null && comms.IsDisabled)
-            msg += $"COMMS OFFLINE — signal reset\n";
-
-        if (defense != null && defense.IsDisabled)
-            msg += $"DEFENSE OFFLINE — events +{Mathf.RoundToInt(defenseEventChancePenalty * 100f)}%\n";
-
-        statusText.text = msg.TrimEnd();
-    }
-
     private void UpdateRuleStates()
     {
-        CacheModules();
+        CacheAggregates();
 
-        // Comms: reset signal once per "down" state entry
-        bool commsDown = comms != null && comms.IsDisabled;
-        if (commsDown)
+        // === COMMS ===
+        if (comms != null && comms.IsDead)
         {
             if (!commsSignalResetDone && resources != null)
             {
@@ -235,9 +155,8 @@ public class DeckClicker : MonoBehaviour
             commsSignalResetDone = false;
         }
 
-        // Life Support: arm/de-arm countdown
-        bool lsDown = lifeSupport != null && lifeSupport.IsDisabled;
-        if (lsDown)
+        // === LIFE SUPPORT ===
+        if (lifeSupport != null && lifeSupport.IsDead)
         {
             if (!lsCrisisActive)
             {
@@ -251,9 +170,8 @@ public class DeckClicker : MonoBehaviour
             lsTurnsLeft = 0;
         }
 
-        // Building Integrity: arm/de-arm countdown
-        bool biDown = buildingIntegrity != null && buildingIntegrity.IsDisabled;
-        if (biDown)
+        // === BUILDING INTEGRITY ===
+        if (buildingIntegrity != null && buildingIntegrity.IsDead)
         {
             if (!biCrisisActive)
             {
@@ -272,33 +190,22 @@ public class DeckClicker : MonoBehaviour
 
     private void ApplyTurnTicksAfterDraw()
     {
-        CacheModules();
+        CacheAggregates();
 
-        // Power down -> all modules take damage each turn
-        if (power != null && power.IsDisabled && powerBlackoutDamagePerTurn > 0)
+        // === POWER BLACKOUT ===
+        if (power != null && power.IsDead && powerBlackoutDamagePerTurn > 0)
         {
-            if (ModuleRegistry.Instance != null)
-            {
-                foreach (var m in ModuleRegistry.Instance.All)
-                    if (m != null) m.Damage(powerBlackoutDamagePerTurn);
-            }
-            else
-            {
-                var modules = FindObjectsByType<StationModule>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-                foreach (var m in modules)
-                    if (m != null) m.Damage(powerBlackoutDamagePerTurn);
-            }
+            foreach (var m in ModuleRegistry.Instance.All)
+                if (m != null)
+                    m.Damage(powerBlackoutDamagePerTurn);
         }
 
-        // Re-evaluate after potential cascade damage
         UpdateRuleStates();
 
-        // Countdowns tick ONCE per turn (per draw)
         if (lsCrisisActive)
         {
-            // if fixed somehow, UpdateRuleStates would have cleared it
-            lsTurnsLeft = Mathf.Max(0, lsTurnsLeft - 1);
-            if (lsTurnsLeft <= 0 && (lifeSupport != null && lifeSupport.IsDisabled))
+            lsTurnsLeft--;
+            if (lsTurnsLeft <= 0 && lifeSupport.IsDead)
             {
                 EndGameLose("Life Support offline too long.");
                 return;
@@ -307,8 +214,8 @@ public class DeckClicker : MonoBehaviour
 
         if (biCrisisActive)
         {
-            biTurnsLeft = Mathf.Max(0, biTurnsLeft - 1);
-            if (biTurnsLeft <= 0 && (buildingIntegrity != null && buildingIntegrity.IsDisabled))
+            biTurnsLeft--;
+            if (biTurnsLeft <= 0 && buildingIntegrity.IsDead)
             {
                 EndGameLose("Building Integrity failed.");
                 return;
@@ -318,11 +225,45 @@ public class DeckClicker : MonoBehaviour
         RefreshStatusUI();
     }
 
+    private void RefreshUI()
+    {
+        if (dayText) dayText.text = $"Day {day}";
+        if (drawsText) drawsText.text = $"{drawsUsed}/{maxDrawsThisDay}";
+    }
+
+    private void RefreshStatusUI()
+    {
+        if (statusText == null) return;
+
+        if (gameEnded)
+        {
+            statusText.text = "GAME OVER";
+            return;
+        }
+
+        string msg = "";
+
+        if (lsCrisisActive)
+            msg += $"LIFE SUPPORT OFFLINE — {lsTurnsLeft} turns left\n";
+
+        if (biCrisisActive)
+            msg += $"BUILDING INTEGRITY FAILED — {biTurnsLeft} turns left\n";
+
+        if (power != null && power.IsDead)
+            msg += "POWER OFFLINE — blackout damage each turn\n";
+
+        if (comms != null && comms.IsDead)
+            msg += "COMMS OFFLINE — signal reset\n";
+
+        if (defense != null && defense.IsDead)
+            msg += $"DEFENSE OFFLINE — events +{Mathf.RoundToInt(defenseEventChancePenalty * 100f)}%\n";
+
+        statusText.text = msg.TrimEnd();
+    }
+
     public void OnDeckClicked()
     {
         if (gameEnded) return;
-
-        // Block drawing while player is choosing overflow replacement/trash
         if (hand != null && hand.IsChoosingOverflow) return;
 
         UpdateRuleStates();
@@ -333,16 +274,15 @@ public class DeckClicker : MonoBehaviour
             return;
         }
 
-        // Day end -> advance day (no draw), but NO "extra pull" for failures
         if (drawsUsed >= maxDrawsThisDay)
         {
-            if (biCrisisActive && buildingIntegrity != null && buildingIntegrity.IsDisabled)
+            if (biCrisisActive && buildingIntegrity.IsDead)
             {
                 EndGameLose("Building Integrity failed (no turns left).");
                 return;
             }
 
-            if (lsCrisisActive && lifeSupport != null && lifeSupport.IsDisabled)
+            if (lsCrisisActive && lifeSupport.IsDead)
             {
                 EndGameLose("Life Support offline (no turns left).");
                 return;
@@ -357,19 +297,16 @@ public class DeckClicker : MonoBehaviour
         LockDeck();
 
         CardKind kind;
-        float effectiveChance = GetEffectiveEventChance();
-        CardData card = deck.DrawRandomByChance(effectiveChance, out kind);
+        CardData card = deck.DrawRandomByChance(GetEffectiveEventChance(), out kind);
         if (card == null)
         {
             UnlockDeck();
             return;
         }
 
-        // A turn happened
         drawsUsed++;
         RefreshUI();
 
-        // Turn effects (blackout damage, countdown ticks, comms reset, defense modifier via chance)
         ApplyTurnTicksAfterDraw();
         if (gameEnded)
         {
@@ -378,19 +315,15 @@ public class DeckClicker : MonoBehaviour
         }
 
         if (kind == CardKind.Event)
-        {
             StartCoroutine(ResolveEventAndUnlock(card));
-        }
         else
         {
-            // If hand is full: start overflow choice and unlock immediately
             if (!hand.AddCard(card))
             {
                 hand.StartOverflowChoice(card);
                 UnlockDeck();
                 return;
             }
-
             StartCoroutine(UnlockNextFrame());
         }
     }
@@ -398,8 +331,6 @@ public class DeckClicker : MonoBehaviour
     private IEnumerator ResolveEventAndUnlock(CardData card)
     {
         yield return resolver.Resolve(card);
-
-        // Card resolution may repair/break modules, so update rules now
         UpdateRuleStates();
 
         if (CheckWin())
@@ -407,54 +338,68 @@ public class DeckClicker : MonoBehaviour
             EndGameWin();
             yield break;
         }
-
-        if (gameEnded) yield break;
 
         while ((cameraDirector != null && cameraDirector.IsPanning) ||
                (TargetingController.Instance != null && TargetingController.Instance.IsResolving))
             yield return null;
 
-        if (!gameEnded)
-            UnlockDeck();
+        UnlockDeck();
     }
 
     public void EvaluateEndConditions()
     {
         if (gameEnded) return;
-
-        // After playing an action, modules might change state -> update rules
         UpdateRuleStates();
-
-        if (CheckWin())
-            EndGameWin();
+        if (CheckWin()) EndGameWin();
     }
 
     private IEnumerator UnlockNextFrame()
     {
         yield return null;
-
-        // After drawing an action, nothing changed yet, but keep UI consistent
         UpdateRuleStates();
+        if (CheckWin()) EndGameWin();
+        UnlockDeck();
+    }
 
-        if (CheckWin())
-        {
-            EndGameWin();
-            yield break;
-        }
+    private void EndGameWin()
+    {
+        if (gameEnded) return;
+        gameEnded = true;
+        LockDeck();
+        TargetingController.Instance?.CancelTargeting();
+        RefreshStatusUI();
+        if (useScenesForEnd)
+            StartCoroutine(LoadEndScene(winSceneName));
+    }
 
-        if (!gameEnded)
-            UnlockDeck();
+    private void EndGameLose(string reason)
+    {
+        if (gameEnded) return;
+        gameEnded = true;
+        Debug.Log($"LOSE: {reason}");
+        LockDeck();
+        TargetingController.Instance?.CancelTargeting();
+        RefreshStatusUI();
+        if (useScenesForEnd)
+            StartCoroutine(LoadEndScene(loseSceneName));
+    }
+
+    private IEnumerator LoadEndScene(string scene)
+    {
+        if (endSceneDelay > 0f)
+            yield return new WaitForSeconds(endSceneDelay);
+        SceneManager.LoadScene(scene);
     }
 
     private void LockDeck()
     {
         deckLocked = true;
-        if (deckButton != null) deckButton.interactable = false;
+        if (deckButton) deckButton.interactable = false;
     }
 
     private void UnlockDeck()
     {
         deckLocked = false;
-        if (deckButton != null) deckButton.interactable = true;
+        if (deckButton) deckButton.interactable = true;
     }
 }
