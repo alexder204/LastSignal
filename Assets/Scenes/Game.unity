@@ -17034,7 +17034,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0c34dba6fb66e14e8a3a24d032dec4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraMove
-  moveSpeed: 5
+  moveSpeed: 10
   rotateSpeed: 90
   minY: 2
 --- !u!1 &1668350480

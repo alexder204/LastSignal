@@ -21,7 +21,7 @@ MonoBehaviour:
   requiredType: 1
   requiresTarget: 0
   useRandomTargetIfNone: 1
-  signalDelta: 1
+  signalDelta: 3
   moduleDamage: 0
   moduleRepair: 1
   cameraHoldSeconds: 0.6
