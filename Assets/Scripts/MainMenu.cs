@@ -20,7 +20,7 @@ public class MainMenu : MonoBehaviour
         
     }
 
-    public void OpenCredits()
+    private void OpenCredits()
     {
         if (CreditsMenuUI == null)
         {
@@ -28,9 +28,10 @@ public class MainMenu : MonoBehaviour
         }
 
         CreditsMenuUI.SetActive(true);
+        //SceneManager.UnloadSceneAsync("MainMenu");
     }
 
-    public void CloseCredits()
+    private void CloseCredits()
     {
         if (CreditsMenuUI == null)
         {
@@ -50,31 +51,6 @@ public class MainMenu : MonoBehaviour
         settingsMenuUI.SetActive(true);
     }
 
-public void CloseSettings()
-    {
-        if (settingsMenuUI == null)
-        {
-            return;
-        }
-
-        settingsMenuUI.SetActive(false);
-    }
-
-    public void StartGame()
-    {
-        SceneManager.LoadScene("Game");
-    }
-
-    public void QuitGame()
-    {
-          // This works in a built application
-        #if UNITY_STANDALONE
-            Application.Quit();
-        // This works in the Unity Editor
-        #elif UNITY_EDITOR
-            EditorApplication.isPlaying = false;
-        #endif
-    }
 
 
 
