@@ -92,9 +92,13 @@ public class TargetingController : MonoBehaviour
     private IEnumerator ResolveAndEnd(CardData card, StationModule target)
     {
         yield return resolver.Resolve(card, target);
-        FindFirstObjectByType<DeckClicker>()?.SendMessage("CheckWinAndEnd");
 
         hand.RemoveCard(card);
+
+        // Replace SendMessage with a direct call:
+        var deckClicker = FindFirstObjectByType<DeckClicker>();
+        if (deckClicker != null)
+            deckClicker.EvaluateEndConditions();
 
         isResolving = false;
     }
@@ -108,13 +112,11 @@ public class TargetingController : MonoBehaviour
             if (!on)
             {
                 m.SetHighlighted(false);
-                m.SetAlarm(false);
                 continue;
             }
 
             bool valid = IsValidTarget(pendingCard, m);
             m.SetHighlighted(valid);
-            m.SetAlarm(valid); // optional, remove if you don’t want alarms
         }
     }
 }

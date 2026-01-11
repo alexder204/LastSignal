@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class DeckClicker : MonoBehaviour
 {
@@ -14,6 +15,15 @@ public class DeckClicker : MonoBehaviour
     [Header("Progression")]
     public int day = 1;
     public int signalGoal = 10;
+
+    [Header("Win / Lose Scenes")]
+    public bool useScenesForEnd = true;
+    public string winSceneName = "WinScene";
+    public string loseSceneName = "LoseScene";
+    [Tooltip("Optional: delay before switching scenes (seconds).")]
+    public float endSceneDelay = 0f;
+
+    private bool gameEnded;
 
     [Header("Day Rules")]
     public int startingDrawsPerDay = 10;
@@ -32,25 +42,30 @@ public class DeckClicker : MonoBehaviour
     public HandController hand;
     public ResourceManager resources;
 
-    [Header("Module References")]
-    public StationModule lifeSupport; // assign in Inspector (recommended)
-    public StationModule reactor;     // assign in Inspector (recommended)
-
-    [Header("Lose Rule: Life Support Collapse")]
-    public int lifeSupportTurnsBeforeDeath = 2;
-
-    [Header("Reactor Collapse Rule")]
-    public int blackoutDamagePerTurn = 1;
-    private bool reactorCollapseActive;
-
     private int drawsUsed;
     private bool deckLocked;
 
-    // Life support rule state
+    [Header("System Failure Rules")]
+    public int lifeSupportTurnsBeforeDeath = 2;
+    public int buildingIntegrityTurnsBeforeDeath = 1;
+    public int powerBlackoutDamagePerTurn = 1;
+    [Range(0f, 1f)] public float defenseEventChancePenalty = 0.10f;
+
+    // cached modules
+    private StationModule lifeSupport;
+    private StationModule power;
+    private StationModule comms;
+    private StationModule buildingIntegrity;
+    private StationModule defense;
+
+    // state
     private bool lsCrisisActive;
     private int lsTurnsLeft;
 
-    private bool gameEnded;
+    private bool biCrisisActive;
+    private int biTurnsLeft;
+
+    private bool commsSignalResetDone;
 
     void Awake()
     {
@@ -60,24 +75,26 @@ public class DeckClicker : MonoBehaviour
         if (hand == null) hand = FindFirstObjectByType<HandController>();
         if (deckButton == null) deckButton = GetComponent<Button>();
         if (resources == null) resources = FindFirstObjectByType<ResourceManager>();
-
-        // Optional auto-find fallback:
-        if (ModuleRegistry.Instance != null)
-        {
-            if (lifeSupport == null) lifeSupport = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
-            if (reactor == null)     reactor     = ModuleRegistry.Instance.Get(ModuleType.Reactor); // NEW
-        }
     }
 
     void Start()
     {
         baseEventChance = eventChance;
+        CacheModules();
         StartDay(1);
+        UpdateRuleStates();   // initialize warnings/counters if any module starts disabled
+        RefreshStatusUI();
+    }
 
-        // NEW: initialize rule states at start
-        UpdateLifeSupportCrisisState();
-        UpdateReactorCollapseState();
-        RefreshLifeSupportCrisisUI();
+    private void CacheModules()
+    {
+        if (ModuleRegistry.Instance == null) return;
+
+        if (lifeSupport == null)        lifeSupport        = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
+        if (power == null)              power              = ModuleRegistry.Instance.Get(ModuleType.Power);
+        if (comms == null)              comms              = ModuleRegistry.Instance.Get(ModuleType.Comms);
+        if (buildingIntegrity == null)  buildingIntegrity  = ModuleRegistry.Instance.Get(ModuleType.BuildingIntegrity);
+        if (defense == null)            defense            = ModuleRegistry.Instance.Get(ModuleType.DefenseSystem);
     }
 
     private void StartDay(int newDay)
@@ -92,6 +109,7 @@ public class DeckClicker : MonoBehaviour
             TargetingController.Instance.CancelTargeting();
 
         RefreshUI();
+        RefreshStatusUI();
     }
 
     private void AdvanceDay()
@@ -105,12 +123,45 @@ public class DeckClicker : MonoBehaviour
         return resources.signal >= signalGoal;
     }
 
+    private void EndGameWin()
+    {
+        if (gameEnded) return;
+        gameEnded = true;
+
+        LockDeck();
+        if (TargetingController.Instance != null)
+            TargetingController.Instance.CancelTargeting();
+
+        RefreshStatusUI();
+
+        if (useScenesForEnd)
+            StartCoroutine(LoadEndScene(winSceneName));
+    }
+
     private void EndGameLose(string reason)
     {
+        if (gameEnded) return;
         gameEnded = true;
-        Debug.Log($"GAME OVER: {reason}");
-        if (statusText != null) statusText.text = "GAME OVER";
+
+        Debug.Log($"LOSE: {reason}");
+
         LockDeck();
+        if (TargetingController.Instance != null)
+            TargetingController.Instance.CancelTargeting();
+
+        RefreshStatusUI();
+
+        if (useScenesForEnd)
+            StartCoroutine(LoadEndScene(loseSceneName));
+    }
+
+    private IEnumerator LoadEndScene(string sceneName)
+    {
+        if (endSceneDelay > 0f)
+            yield return new WaitForSeconds(endSceneDelay);
+
+        if (!string.IsNullOrWhiteSpace(sceneName))
+            SceneManager.LoadScene(sceneName);
     }
 
     private void RefreshUI()
@@ -122,16 +173,18 @@ public class DeckClicker : MonoBehaviour
             drawsText.text = $"{drawsUsed}/{maxDrawsThisDay}";
     }
 
-    // --- Life Support rule ---
-    private bool IsLifeSupportDown()
+    private float GetEffectiveEventChance()
     {
-        if (lifeSupport == null && ModuleRegistry.Instance != null)
-            lifeSupport = ModuleRegistry.Instance.Get(ModuleType.LifeSupport);
+        CacheModules();
 
-        return lifeSupport != null && lifeSupport.Health <= 0;
+        float c = eventChance;
+        if (defense != null && defense.IsDisabled)
+            c += defenseEventChancePenalty;
+
+        return Mathf.Clamp01(c);
     }
 
-    private void RefreshLifeSupportCrisisUI()
+    private void RefreshStatusUI()
     {
         if (statusText == null) return;
 
@@ -141,120 +194,160 @@ public class DeckClicker : MonoBehaviour
             return;
         }
 
+        CacheModules();
+
+        string msg = "";
+
         if (lsCrisisActive)
-            statusText.text = $"LIFE SUPPORT OFFLINE — {lsTurnsLeft} turns left";
-        else
-            statusText.text = "";
+            msg += $"LIFE SUPPORT OFFLINE — {lsTurnsLeft} turns left\n";
+
+        if (biCrisisActive)
+            msg += $"BUILDING INTEGRITY FAILED — {biTurnsLeft} turns left\n";
+
+        if (power != null && power.IsDisabled)
+            msg += $"POWER OFFLINE — blackout damage each turn\n";
+
+        if (comms != null && comms.IsDisabled)
+            msg += $"COMMS OFFLINE — signal reset\n";
+
+        if (defense != null && defense.IsDisabled)
+            msg += $"DEFENSE OFFLINE — events +{Mathf.RoundToInt(defenseEventChancePenalty * 100f)}%\n";
+
+        statusText.text = msg.TrimEnd();
     }
 
-    private void UpdateLifeSupportCrisisState()
+    private void UpdateRuleStates()
     {
-        if (resources == null) return;
+        CacheModules();
 
-        bool down = IsLifeSupportDown();
-
-        if (down)
+        // Comms: reset signal once per "down" state entry
+        bool commsDown = comms != null && comms.IsDisabled;
+        if (commsDown)
         {
-            resources.oxygen = 0;
+            if (!commsSignalResetDone && resources != null)
+            {
+                resources.signal = 0;
+                commsSignalResetDone = true;
+            }
+        }
+        else
+        {
+            commsSignalResetDone = false;
+        }
 
+        // Life Support: arm/de-arm countdown
+        bool lsDown = lifeSupport != null && lifeSupport.IsDisabled;
+        if (lsDown)
+        {
             if (!lsCrisisActive)
             {
                 lsCrisisActive = true;
                 lsTurnsLeft = Mathf.Max(1, lifeSupportTurnsBeforeDeath);
-                RefreshLifeSupportCrisisUI();
             }
         }
         else
-        {
-            if (lsCrisisActive)
-            {
-                lsCrisisActive = false;
-                lsTurnsLeft = 0;
-                RefreshLifeSupportCrisisUI();
-            }
-        }
-    }
-
-    private void TickLifeSupportCrisisOnTurn()
-    {
-        if (!lsCrisisActive) return;
-
-        if (!IsLifeSupportDown())
         {
             lsCrisisActive = false;
             lsTurnsLeft = 0;
-            RefreshLifeSupportCrisisUI();
-            return;
         }
 
-        lsTurnsLeft = Mathf.Max(0, lsTurnsLeft - 1);
-        RefreshLifeSupportCrisisUI();
-
-        if (lsTurnsLeft <= 0)
-            EndGameLose("Life Support offline for too long.");
-    }
-    // --- end Life Support rule ---
-
-    // --- Reactor rule ---
-    private bool IsReactorDown()
-    {
-        if (reactor == null && ModuleRegistry.Instance != null)
-            reactor = ModuleRegistry.Instance.Get(ModuleType.Reactor); // NEW fallback
-
-        return reactor != null && reactor.Health <= 0;
-    }
-
-    private void UpdateReactorCollapseState()
-    {
-        if (resources == null) return;
-
-        if (IsReactorDown())
+        // Building Integrity: arm/de-arm countdown
+        bool biDown = buildingIntegrity != null && buildingIntegrity.IsDisabled;
+        if (biDown)
         {
-            resources.power = 0;           // lock power to 0 while reactor is dead
-            reactorCollapseActive = true;
+            if (!biCrisisActive)
+            {
+                biCrisisActive = true;
+                biTurnsLeft = Mathf.Max(1, buildingIntegrityTurnsBeforeDeath);
+            }
         }
         else
         {
-            reactorCollapseActive = false;
+            biCrisisActive = false;
+            biTurnsLeft = 0;
         }
+
+        RefreshStatusUI();
     }
 
-    private void TickReactorBlackoutOnTurn()
+    private void ApplyTurnTicksAfterDraw()
     {
-        if (!reactorCollapseActive) return;
-        if (resources == null || resources.power > 0) return;
-        if (blackoutDamagePerTurn <= 0) return;
+        CacheModules();
 
-        if (ModuleRegistry.Instance != null)
+        // Power down -> all modules take damage each turn
+        if (power != null && power.IsDisabled && powerBlackoutDamagePerTurn > 0)
         {
-            foreach (var m in ModuleRegistry.Instance.All)
-                if (m != null) m.Damage(blackoutDamagePerTurn);
+            if (ModuleRegistry.Instance != null)
+            {
+                foreach (var m in ModuleRegistry.Instance.All)
+                    if (m != null) m.Damage(powerBlackoutDamagePerTurn);
+            }
+            else
+            {
+                var modules = FindObjectsByType<StationModule>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                foreach (var m in modules)
+                    if (m != null) m.Damage(powerBlackoutDamagePerTurn);
+            }
         }
-        else
+
+        // Re-evaluate after potential cascade damage
+        UpdateRuleStates();
+
+        // Countdowns tick ONCE per turn (per draw)
+        if (lsCrisisActive)
         {
-            var modules = FindObjectsByType<StationModule>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var m in modules)
-                if (m != null) m.Damage(blackoutDamagePerTurn);
+            // if fixed somehow, UpdateRuleStates would have cleared it
+            lsTurnsLeft = Mathf.Max(0, lsTurnsLeft - 1);
+            if (lsTurnsLeft <= 0 && (lifeSupport != null && lifeSupport.IsDisabled))
+            {
+                EndGameLose("Life Support offline too long.");
+                return;
+            }
         }
+
+        if (biCrisisActive)
+        {
+            biTurnsLeft = Mathf.Max(0, biTurnsLeft - 1);
+            if (biTurnsLeft <= 0 && (buildingIntegrity != null && buildingIntegrity.IsDisabled))
+            {
+                EndGameLose("Building Integrity failed.");
+                return;
+            }
+        }
+
+        RefreshStatusUI();
     }
-    // --- end Reactor rule ---
 
     public void OnDeckClicked()
     {
         if (gameEnded) return;
 
-        // NEW: keep both rules updated before doing anything
-        UpdateLifeSupportCrisisState();
-        UpdateReactorCollapseState();
+        // Block drawing while player is choosing overflow replacement/trash
+        if (hand != null && hand.IsChoosingOverflow) return;
+
+        UpdateRuleStates();
 
         if (CheckWin())
         {
-            Debug.Log("WIN: Signal goal reached.");
+            EndGameWin();
             return;
         }
 
+        // Day end -> advance day (no draw), but NO "extra pull" for failures
         if (drawsUsed >= maxDrawsThisDay)
         {
+            if (biCrisisActive && buildingIntegrity != null && buildingIntegrity.IsDisabled)
+            {
+                EndGameLose("Building Integrity failed (no turns left).");
+                return;
+            }
+
+            if (lsCrisisActive && lifeSupport != null && lifeSupport.IsDisabled)
+            {
+                EndGameLose("Life Support offline (no turns left).");
+                return;
+            }
+
             AdvanceDay();
             return;
         }
@@ -264,30 +357,25 @@ public class DeckClicker : MonoBehaviour
         LockDeck();
 
         CardKind kind;
-        CardData card = deck.DrawRandomByChance(eventChance, out kind);
+        float effectiveChance = GetEffectiveEventChance();
+        CardData card = deck.DrawRandomByChance(effectiveChance, out kind);
         if (card == null)
         {
             UnlockDeck();
             return;
         }
 
-        // Successful draw = a turn happened
+        // A turn happened
         drawsUsed++;
         RefreshUI();
 
-        // NEW: apply turn-ticks AFTER the draw
-        UpdateLifeSupportCrisisState();
-        UpdateReactorCollapseState();
-
-        TickLifeSupportCrisisOnTurn();
-        if (gameEnded) return;
-
-        TickReactorBlackoutOnTurn(); // NEW: damage-all tick
-        if (gameEnded) return;
-
-        // Re-clamp after damage tick (reactor might already be dead; ensures power stays 0)
-        UpdateLifeSupportCrisisState();
-        UpdateReactorCollapseState();
+        // Turn effects (blackout damage, countdown ticks, comms reset, defense modifier via chance)
+        ApplyTurnTicksAfterDraw();
+        if (gameEnded)
+        {
+            UnlockDeck();
+            return;
+        }
 
         if (kind == CardKind.Event)
         {
@@ -295,7 +383,14 @@ public class DeckClicker : MonoBehaviour
         }
         else
         {
-            hand.AddCard(card);
+            // If hand is full: start overflow choice and unlock immediately
+            if (!hand.AddCard(card))
+            {
+                hand.StartOverflowChoice(card);
+                UnlockDeck();
+                return;
+            }
+
             StartCoroutine(UnlockNextFrame());
         }
     }
@@ -303,30 +398,49 @@ public class DeckClicker : MonoBehaviour
     private IEnumerator ResolveEventAndUnlock(CardData card)
     {
         yield return resolver.Resolve(card);
-        CheckWinAndEnd();
-        if (gameEnded) yield break;
 
-        // NEW: update rules after event resolves
-        UpdateLifeSupportCrisisState();
-        UpdateReactorCollapseState();
+        // Card resolution may repair/break modules, so update rules now
+        UpdateRuleStates();
+
+        if (CheckWin())
+        {
+            EndGameWin();
+            yield break;
+        }
+
+        if (gameEnded) yield break;
 
         while ((cameraDirector != null && cameraDirector.IsPanning) ||
                (TargetingController.Instance != null && TargetingController.Instance.IsResolving))
-        {
             yield return null;
-        }
 
         if (!gameEnded)
             UnlockDeck();
+    }
+
+    public void EvaluateEndConditions()
+    {
+        if (gameEnded) return;
+
+        // After playing an action, modules might change state -> update rules
+        UpdateRuleStates();
+
+        if (CheckWin())
+            EndGameWin();
     }
 
     private IEnumerator UnlockNextFrame()
     {
         yield return null;
 
-        // NEW: update rules after action draw
-        UpdateLifeSupportCrisisState();
-        UpdateReactorCollapseState();
+        // After drawing an action, nothing changed yet, but keep UI consistent
+        UpdateRuleStates();
+
+        if (CheckWin())
+        {
+            EndGameWin();
+            yield break;
+        }
 
         if (!gameEnded)
             UnlockDeck();
@@ -343,21 +457,4 @@ public class DeckClicker : MonoBehaviour
         deckLocked = false;
         if (deckButton != null) deckButton.interactable = true;
     }
-
-    private void CheckWinAndEnd()
-    {
-        if (resources == null) return;
-
-        if (resources.signal >= signalGoal)
-        {
-            Debug.Log("WIN: Signal goal reached. Closing game.");
-
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
-        }
-    }
-
 }

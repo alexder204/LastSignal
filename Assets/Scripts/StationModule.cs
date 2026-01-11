@@ -11,8 +11,8 @@ public class StationModule : MonoBehaviour
     public ModuleType type;
 
     [Header("Focus & VFX Points")]
-    public Transform focusPoint;   // where the camera should pan
-    public Transform vfxPoint;     // where sparks/steam can spawn (optional)
+    public Transform focusPoint;
+    public Transform vfxPoint;
 
     [Header("State")]
     [Min(1)] public int maxHealth = 5;
@@ -20,8 +20,21 @@ public class StationModule : MonoBehaviour
     [SerializeField] private bool disabled;
 
     [Header("Simple Visual Feedback (optional)")]
-    public Light alarmLight;       // toggle this for events
-    public Renderer[] highlightRenderers; // optional: set emissive/outline later
+    public Renderer[] highlightRenderers;
+
+    [Header("Event TV Feedback")]
+    public Renderer tvRenderer;                 // assign the TV/screen renderer
+    [Tooltip("Which material slot on the TV renderer is the screen? Usually 0.")]
+    public int tvMaterialIndex = 0;
+
+    public Color tvNormalColor = Color.white;
+    public Color tvEventColor = Color.red;
+
+    // cache
+    private Material tvMatInstance;
+    private Color cachedBaseColor;
+    private Color cachedEmissionColor;
+    private bool hasEmission;
 
     public int Health => health;
     public bool IsDamaged => health < maxHealth;
@@ -29,9 +42,84 @@ public class StationModule : MonoBehaviour
 
     void Awake()
     {
-        if (focusPoint == null) focusPoint = transform; // fallback
+        if (focusPoint == null) focusPoint = transform;
         if (health <= 0) health = maxHealth;
-        SetAlarm(false);
+
+        CacheTVMaterial();
+        SetTVColor(tvNormalColor); // init
+    }
+
+    private void CacheTVMaterial()
+    {
+        tvMatInstance = null;
+        hasEmission = false;
+
+        if (tvRenderer == null) return;
+
+        var mats = tvRenderer.materials; // creates instances (good for runtime changes)
+        if (mats == null || mats.Length == 0) return;
+
+        tvMaterialIndex = Mathf.Clamp(tvMaterialIndex, 0, mats.Length - 1);
+        tvMatInstance = mats[tvMaterialIndex];
+
+        // Cache what’s actually on the material
+        if (tvMatInstance.HasProperty("_BaseColor"))
+            cachedBaseColor = tvMatInstance.GetColor("_BaseColor");
+        else if (tvMatInstance.HasProperty("_Color"))
+            cachedBaseColor = tvMatInstance.GetColor("_Color");
+        else
+            cachedBaseColor = tvNormalColor;
+
+        if (tvMatInstance.HasProperty("_EmissionColor"))
+        {
+            cachedEmissionColor = tvMatInstance.GetColor("_EmissionColor");
+            hasEmission = true;
+        }
+    }
+
+    private void SetTVColor(Color c)
+    {
+        if (tvMatInstance == null) return;
+
+        // URP Lit uses _BaseColor, Standard uses _Color
+        if (tvMatInstance.HasProperty("_BaseColor"))
+            tvMatInstance.SetColor("_BaseColor", c);
+        if (tvMatInstance.HasProperty("_Color"))
+            tvMatInstance.SetColor("_Color", c);
+
+        // If emission exists, set it too (often what screens actually show)
+        if (tvMatInstance.HasProperty("_EmissionColor"))
+        {
+            tvMatInstance.EnableKeyword("_EMISSION");
+            tvMatInstance.SetColor("_EmissionColor", c);
+        }
+    }
+
+    public void SetEventTV(bool on)
+    {
+        // If renderer changed at runtime, recache once
+        if (tvRenderer != null && tvMatInstance == null)
+            CacheTVMaterial();
+
+        if (tvMatInstance == null) return;
+
+        if (on)
+        {
+            SetTVColor(tvEventColor);
+        }
+        else
+        {
+            // restore cached colors (not just white in case your normal isn’t pure white)
+            if (tvMatInstance.HasProperty("_BaseColor"))
+                tvMatInstance.SetColor("_BaseColor", cachedBaseColor);
+            if (tvMatInstance.HasProperty("_Color"))
+                tvMatInstance.SetColor("_Color", cachedBaseColor);
+
+            if (hasEmission && tvMatInstance.HasProperty("_EmissionColor"))
+                tvMatInstance.SetColor("_EmissionColor", cachedEmissionColor);
+            else if (tvMatInstance.HasProperty("_EmissionColor"))
+                tvMatInstance.SetColor("_EmissionColor", Color.black);
+        }
     }
 
     void OnMouseDown()
@@ -53,10 +141,7 @@ public class StationModule : MonoBehaviour
         if (amount <= 0) return;
         health = Mathf.Max(0, health - amount);
 
-        // If you want: auto-disable when health hits 0
         if (health == 0) disabled = true;
-
-        SetAlarm(true);
     }
 
     public void Repair(int amount)
@@ -65,18 +150,11 @@ public class StationModule : MonoBehaviour
         health = Mathf.Min(maxHealth, health + amount);
 
         if (health > 0) disabled = false;
-        if (!IsDamaged) SetAlarm(false);
     }
 
     public void SetDisabled(bool value)
     {
         disabled = value;
-        SetAlarm(value || IsDamaged);
-    }
-
-    public void SetAlarm(bool on)
-    {
-        if (alarmLight != null) alarmLight.enabled = on;
     }
 
     public void SetHighlighted(bool on)
@@ -86,15 +164,5 @@ public class StationModule : MonoBehaviour
 
         foreach (var r in highlightRenderers)
             if (r != null) r.material = on ? highlightMaterial : normalMaterial;
-    }
-
-
-    // For quick targeting/selection debugging
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.cyan;
-        Transform fp = focusPoint != null ? focusPoint : transform;
-        Gizmos.DrawWireSphere(fp.position, 0.25f);
-        Gizmos.DrawLine(fp.position, fp.position + Vector3.up * 0.75f);
     }
 }

@@ -14,6 +14,9 @@ public class CardData : ScriptableObject
 
     public CardKind kind;
 
+    [Header("Draw Weight (rarity)")]
+    [Min(0f)] public float drawWeight = 1f; // 0 = never draw, 1 = normal, 0.2 = rare
+
     public enum TargetRule
     {
         AnyModule,      // wildcard
@@ -28,10 +31,7 @@ public class CardData : ScriptableObject
     public bool requiresTarget;
     public bool useRandomTargetIfNone; // for event cards
 
-    [Header("Effect (simple for jam)")]
-    public int oxygenDelta;
-    public int powerDelta;
-    public int hullDelta;
+    [Header("Effect (signal-only)")]
     public int signalDelta;
 
     [Header("Module Effect")]
