@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TradeCard
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Trade-Off
-  description: Grants +2 to Signal. -3 to a random Module
+  description: Grants +3 to Signal. -3 to a random Module
   cardArt: {fileID: 21300000, guid: 1a83e21a92fcb334b91da0a8207a2bf3, type: 3}
   kind: 1
   drawWeight: 0.2
@@ -21,7 +21,7 @@ MonoBehaviour:
   requiredType: 0
   requiresTarget: 0
   useRandomTargetIfNone: 1
-  signalDelta: 2
+  signalDelta: 3
   moduleDamage: 3
   moduleRepair: 0
   cameraHoldSeconds: 0.6
