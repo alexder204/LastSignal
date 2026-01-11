@@ -30,10 +30,17 @@ public class EventResolver : MonoBehaviour
         if (card.kind != CardKind.Event) return null;
 
         if (card.targetRule == CardData.TargetRule.SpecificType)
-            return ModuleRegistry.Instance.GetRandom(m => m != null && m.type == card.requiredType);
+            return ModuleRegistry.Instance.GetRandom(m =>
+                m != null &&
+                !m.IsDisabled &&
+                m.Health > 0 &&
+                m.type == card.requiredType);
 
         if (card.useRandomTargetIfNone)
-            return ModuleRegistry.Instance.GetRandom(m => m != null);
+            return ModuleRegistry.Instance.GetRandom(m =>
+                m != null &&
+                !m.IsDisabled &&
+                m.Health > 0);
 
         return null;
     }

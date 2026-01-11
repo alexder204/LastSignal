@@ -1,9 +1,10 @@
 // StationModule.cs
 using UnityEngine;
+using System;
 
 public class StationModule : MonoBehaviour
 {
-    [Header("Highlight (optional)")]
+    [Header("Highlight")]
     public Material normalMaterial;
     public Material highlightMaterial;
 
@@ -19,35 +20,52 @@ public class StationModule : MonoBehaviour
     [SerializeField] private int health;
     [SerializeField] private bool disabled;
 
-    [Header("Simple Visual Feedback (optional)")]
-    public Renderer[] highlightRenderers;
+    public event Action<StationModule> OnHPChanged;
+
+    [Header("Auto Highlight")]
+    public bool autoCollectRenderers = true;
+    private Renderer[] cachedRenderers;
 
     [Header("Event TV Feedback")]
-    public Renderer tvRenderer;                 // assign the TV/screen renderer
+    public Renderer tvRenderer;
     [Tooltip("Which material slot on the TV renderer is the screen? Usually 0.")]
     public int tvMaterialIndex = 0;
 
     public Color tvNormalColor = Color.white;
     public Color tvEventColor = Color.red;
 
-    // cache
+    // TV cache
     private Material tvMatInstance;
     private Color cachedBaseColor;
     private Color cachedEmissionColor;
     private bool hasEmission;
 
     public int Health => health;
+    public int MaxHealth => maxHealth;
     public bool IsDamaged => health < maxHealth;
     public bool IsDisabled => disabled;
 
     void Awake()
     {
         if (focusPoint == null) focusPoint = transform;
+
+        if (autoCollectRenderers)
+            CollectRenderers();
+
         if (health <= 0) health = maxHealth;
+        health = Mathf.Clamp(health, 0, maxHealth);
+        if (health == 0) disabled = true;
 
         CacheTVMaterial();
-        SetTVColor(tvNormalColor); // init
+        SetTVColor(tvNormalColor);
     }
+
+    void CollectRenderers()
+    {
+        cachedRenderers = GetComponentsInChildren<Renderer>(true);
+    }
+
+    #region TV
 
     private void CacheTVMaterial()
     {
@@ -56,13 +74,12 @@ public class StationModule : MonoBehaviour
 
         if (tvRenderer == null) return;
 
-        var mats = tvRenderer.materials; // creates instances (good for runtime changes)
+        var mats = tvRenderer.materials;
         if (mats == null || mats.Length == 0) return;
 
         tvMaterialIndex = Mathf.Clamp(tvMaterialIndex, 0, mats.Length - 1);
         tvMatInstance = mats[tvMaterialIndex];
 
-        // Cache what’s actually on the material
         if (tvMatInstance.HasProperty("_BaseColor"))
             cachedBaseColor = tvMatInstance.GetColor("_BaseColor");
         else if (tvMatInstance.HasProperty("_Color"))
@@ -81,13 +98,11 @@ public class StationModule : MonoBehaviour
     {
         if (tvMatInstance == null) return;
 
-        // URP Lit uses _BaseColor, Standard uses _Color
         if (tvMatInstance.HasProperty("_BaseColor"))
             tvMatInstance.SetColor("_BaseColor", c);
         if (tvMatInstance.HasProperty("_Color"))
             tvMatInstance.SetColor("_Color", c);
 
-        // If emission exists, set it too (often what screens actually show)
         if (tvMatInstance.HasProperty("_EmissionColor"))
         {
             tvMatInstance.EnableKeyword("_EMISSION");
@@ -97,7 +112,6 @@ public class StationModule : MonoBehaviour
 
     public void SetEventTV(bool on)
     {
-        // If renderer changed at runtime, recache once
         if (tvRenderer != null && tvMatInstance == null)
             CacheTVMaterial();
 
@@ -109,7 +123,6 @@ public class StationModule : MonoBehaviour
         }
         else
         {
-            // restore cached colors (not just white in case your normal isn’t pure white)
             if (tvMatInstance.HasProperty("_BaseColor"))
                 tvMatInstance.SetColor("_BaseColor", cachedBaseColor);
             if (tvMatInstance.HasProperty("_Color"))
@@ -122,8 +135,12 @@ public class StationModule : MonoBehaviour
         }
     }
 
+    #endregion
+
     void OnMouseDown()
     {
+        if (IsDisabled) return;
+
         if (TargetingController.Instance != null && TargetingController.Instance.IsResolving)
             return;
 
@@ -138,31 +155,57 @@ public class StationModule : MonoBehaviour
 
     public void Damage(int amount)
     {
-        if (amount <= 0) return;
+        if (amount <= 0 || disabled) return;
+
+        int before = health;
         health = Mathf.Max(0, health - amount);
 
         if (health == 0) disabled = true;
+
+        if (health != before)
+            OnHPChanged?.Invoke(this);
     }
 
     public void Repair(int amount)
     {
-        if (amount <= 0) return;
+        if (amount <= 0 || health == 0) return;
+
+        int before = health;
         health = Mathf.Min(maxHealth, health + amount);
 
         if (health > 0) disabled = false;
+
+        if (health != before)
+            OnHPChanged?.Invoke(this);
     }
 
     public void SetDisabled(bool value)
     {
+        if (disabled == value) return;
+
         disabled = value;
+        if (disabled) health = 0;
+
+        OnHPChanged?.Invoke(this);
     }
 
     public void SetHighlighted(bool on)
     {
-        if (highlightRenderers == null || highlightRenderers.Length == 0) return;
+        if (cachedRenderers == null || cachedRenderers.Length == 0) return;
         if (normalMaterial == null || highlightMaterial == null) return;
 
-        foreach (var r in highlightRenderers)
-            if (r != null) r.material = on ? highlightMaterial : normalMaterial;
+        foreach (var r in cachedRenderers)
+        {
+            if (!r) continue;
+            if (tvRenderer != null && r == tvRenderer) continue;
+
+            var mats = r.materials;
+            if (mats == null || mats.Length == 0) continue;
+
+            for (int i = 0; i < mats.Length; i++)
+                mats[i] = on ? highlightMaterial : normalMaterial;
+
+            r.materials = mats;
+        }
     }
 }
