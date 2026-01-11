@@ -28,10 +28,7 @@ public class CardData : ScriptableObject
     public bool requiresTarget;
     public bool useRandomTargetIfNone; // for event cards
 
-    [Header("Effect (simple for jam)")]
-    public int oxygenDelta;
-    public int powerDelta;
-    public int hullDelta;
+    [Header("Effect (signal-only)")]
     public int signalDelta;
 
     [Header("Module Effect")]

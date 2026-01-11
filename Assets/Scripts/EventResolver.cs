@@ -46,8 +46,6 @@ public class EventResolver : MonoBehaviour
         if (target != null)
         {
             target.SetHighlighted(true);
-
-            // NEW: set TV to red for the whole event
             target.SetEventTV(true);
         }
 
@@ -57,8 +55,9 @@ public class EventResolver : MonoBehaviour
             yield return cameraDirector.Focus(fp, true);
         }
 
+        // Signal-only apply
         if (resources != null)
-            resources.Apply(card.oxygenDelta, card.powerDelta, card.hullDelta, card.signalDelta);
+            resources.ApplySignal(card.signalDelta);
 
         if (target != null)
         {

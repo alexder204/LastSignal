@@ -20,10 +20,7 @@ MonoBehaviour:
   requiredType: 1
   requiresTarget: 1
   useRandomTargetIfNone: 0
-  oxygenDelta: 0
-  powerDelta: 2
-  hullDelta: 0
-  signalDelta: 0
+  signalDelta: 10
   moduleDamage: 0
   moduleRepair: 2
   cameraHoldSeconds: 0.6
