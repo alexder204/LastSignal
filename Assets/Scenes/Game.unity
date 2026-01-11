@@ -18483,9 +18483,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   Mixer: {fileID: 24100000, guid: 29882afef13970a49bf0da9380a5ff6d, type: 2}
   AudioSource: {fileID: 496864277}
   ValueText: {fileID: 1544186768}
+=======
+  Mixer: {fileID: 0}
+  AudioSource: {fileID: 0}
+  ValueText: {fileID: 0}
+>>>>>>> Stashed changes
 =======
   Mixer: {fileID: 0}
   AudioSource: {fileID: 0}
